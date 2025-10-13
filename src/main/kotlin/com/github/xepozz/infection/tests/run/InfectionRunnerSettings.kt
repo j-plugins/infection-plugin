@@ -1,9 +1,12 @@
 package com.github.xepozz.infection.tests.run
 
+import com.github.xepozz.infection.staticAnalyzer.StaticAnalyzerOptions
 import com.jetbrains.php.phpunit.coverage.PhpUnitCoverageEngine.CoverageEngine
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 
 class InfectionRunnerSettings(
+    var staticAnalyzer: StaticAnalyzerOptions = StaticAnalyzerOptions.NONE,
+    var staticAnalyzerOptions: String = "",
     var coverageEngine: CoverageEngine = CoverageEngine.XDEBUG,
     var parallelTestingEnabled: Boolean = false,
 ) : PhpTestRunnerSettings() {

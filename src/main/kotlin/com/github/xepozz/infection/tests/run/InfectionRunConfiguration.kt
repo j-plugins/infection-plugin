@@ -6,9 +6,7 @@ import com.github.xepozz.infection.tests.InfectionFrameworkType
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.ConfigurationPerRunnerSettings
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
@@ -30,6 +28,9 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
     InfectionTestRunnerSettingsValidator,
     InfectionRunConfigurationHandler.INSTANCE,
 ), PhpAsyncRunConfiguration {
+    val infectionSettings
+        get() = settings as InfectionRunConfigurationSettings
+
     override fun createMethodFieldCompletionProvider(editor: PhpTestRunnerConfigurationEditor): TextFieldCompletionProvider {
         println("createMethodFieldCompletionProvider $editor")
         return object : TextFieldCompletionProvider() {
@@ -45,7 +46,8 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         val editor = super.getConfigurationEditor() as PhpTestRunConfigurationEditor
         editor.setRunnerOptionsDocumentation("https://infection.github.io/guide/command-line-options.html")
 
-        return this.addExtensionEditor(editor)!!
+//        return this.addExtensionEditor(editor)!!
+        return InfectionTestRunConfigurationEditor(editor, this)
     }
 
     override fun getWorkingDirectory(
