@@ -16,10 +16,10 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         commandSettings.apply {
             setScript(exe, false)
             addArgument("run")
-            addArgument("--no-progress")
-            addArgument("-n")
-            addArgument("-q")
-            addArgument("--logger-gitlab=php://stdout")
+//            addArgument("--no-progress")
+//            addArgument("-n")
+//            addArgument("-q")
+//            addArgument("--logger-gitlab=php://stdout")
         }
         println("commandSettings: $commandSettings")
     }
