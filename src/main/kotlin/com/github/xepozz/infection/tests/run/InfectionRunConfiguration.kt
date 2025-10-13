@@ -6,7 +6,11 @@ import com.github.xepozz.infection.tests.InfectionFrameworkType
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
+import com.intellij.execution.configurations.ConfigurationPerRunnerSettings
+import com.intellij.execution.configurations.RunConfiguration
+import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
+import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.util.TextFieldCompletionProvider
 import com.jetbrains.php.config.commandLine.PhpCommandLinePathProcessor
@@ -14,6 +18,7 @@ import com.jetbrains.php.run.PhpAsyncRunConfiguration
 import com.jetbrains.php.run.remote.PhpRemoteInterpreterManager
 import com.jetbrains.php.testFramework.PhpTestFrameworkConfiguration
 import com.jetbrains.php.testFramework.run.PhpTestRunConfiguration
+import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationEditor
 import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationSettings
 import com.jetbrains.php.testFramework.run.PhpTestRunnerConfigurationEditor
 
@@ -32,6 +37,15 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
                 println("addCompletionVariants: $text, $offset, $prefix")
             }
         }
+    }
+
+    override fun createSettings() = InfectionRunConfigurationSettings()
+
+    override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
+        val editor = super.getConfigurationEditor() as PhpTestRunConfigurationEditor
+        editor.setRunnerOptionsDocumentation("https://infection.github.io/guide/command-line-options.html")
+
+        return this.addExtensionEditor(editor)!!
     }
 
     override fun getWorkingDirectory(
