@@ -31,8 +31,7 @@ class InfectionRunConfigurationProducer : PhpTestConfigurationProducer<Infection
         return element.containingFile?.containingDirectory?.virtualFile
     }
 
-    override fun getConfigurationFactory() =
-        InfectionRunConfigurationFactory(InfectionRunConfigurationType.INSTANCE)
+    override fun getConfigurationFactory() = InfectionRunConfigurationFactory(InfectionRunConfigurationType.INSTANCE)
 
     companion object {
         val METHOD = Condition<PsiElement> { it is Method }

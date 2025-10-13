@@ -8,7 +8,7 @@ class InfectionRunConfigurationSettings : PhpTestRunConfigurationSettings() {
         testRunnerOptions = "-q -n --no-progress --logger-gitlab=php://stdout"
     }
 
-    override fun getRunnerSettings() = super.getRunnerSettings() as InfectionRunnerSettings
+    override fun getRunnerSettings() = getInfectionRunnerSettings()
 
     override fun setRunnerSettings(runnerSettings: PhpTestRunnerSettings) {
         super.setRunnerSettings(InfectionRunnerSettings.fromPhpTestRunnerSettings(runnerSettings))

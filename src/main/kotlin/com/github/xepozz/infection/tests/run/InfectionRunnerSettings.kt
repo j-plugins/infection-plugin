@@ -1,15 +1,10 @@
 package com.github.xepozz.infection.tests.run
 
-import com.intellij.util.xmlb.annotations.Attribute
-import com.intellij.util.xmlb.annotations.Tag
 import com.jetbrains.php.phpunit.coverage.PhpUnitCoverageEngine.CoverageEngine
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 
-@Tag("InfectionRunner")
-data class InfectionRunnerSettings(
-    @Attribute("coverage_engine")
+class InfectionRunnerSettings(
     var coverageEngine: CoverageEngine = CoverageEngine.XDEBUG,
-    @Attribute("parallel_testing_enabled")
     var parallelTestingEnabled: Boolean = false,
 ) : PhpTestRunnerSettings() {
     companion object {
