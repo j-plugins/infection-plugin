@@ -21,6 +21,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
             addArgument("-q")
             addArgument("--logger-gitlab=php://stdout")
         }
+        println("commandSettings: $commandSettings")
     }
 
     override fun runType(
@@ -40,7 +41,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
     ) {
         println("runDirectory: $directory")
         if (!directory.isEmpty()) {
-            phpCommandSettings.addPathArgument(directory)
+            phpCommandSettings.addArgument("--filter=$directory")
         }
     }
 
@@ -52,7 +53,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
     ) {
         println("runFile: $file")
         if (!file.isEmpty()) {
-            phpCommandSettings.addPathArgument(file)
+            phpCommandSettings.addArgument("--filter=$file")
         }
     }
 
