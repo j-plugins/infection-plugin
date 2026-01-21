@@ -18,14 +18,14 @@ class InfectionRunConfigurationSettings : PhpTestRunConfigurationSettings() {
         val settings = super.getRunnerSettings()
         if (settings is InfectionRunnerSettings) {
             return settings
-        } else {
-            val copy = InfectionRunnerSettings.fromPhpTestRunnerSettings(settings)
-            this.setInfectionRunnerSettings(copy)
-            return copy
         }
+
+        val copy = InfectionRunnerSettings.fromPhpTestRunnerSettings(settings)
+        setInfectionRunnerSettings(copy)
+        return copy
     }
 
     fun setInfectionRunnerSettings(runnerSettings: InfectionRunnerSettings) {
-        this.setRunnerSettings(runnerSettings)
+        setRunnerSettings(runnerSettings)
     }
 }

@@ -1,4 +1,4 @@
-package com.github.xepozz.infection.staticAnalyzer
+package com.github.xepozz.infection.config
 
 enum class StaticAnalyzerOptions(val title: String) {
     NONE("None"),

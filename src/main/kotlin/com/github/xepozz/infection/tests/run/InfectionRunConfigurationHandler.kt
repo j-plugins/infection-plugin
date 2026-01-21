@@ -41,7 +41,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
     ) {
         println("runDirectory: $directory")
         if (!directory.isEmpty()) {
-            phpCommandSettings.addArgument("--filter=$directory")
+//            phpCommandSettings.addArgument("--filter=$directory")
         }
     }
 

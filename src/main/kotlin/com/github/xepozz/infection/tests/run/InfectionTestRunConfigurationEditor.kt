@@ -1,6 +1,7 @@
 package com.github.xepozz.infection.tests.run
 
-import com.github.xepozz.infection.staticAnalyzer.StaticAnalyzerOptions
+import com.github.xepozz.infection.config.StaticAnalyzerOptions
+import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.ui.dsl.builder.RowLayout
 import com.intellij.ui.dsl.builder.bindItem
@@ -17,6 +18,23 @@ class InfectionTestRunConfigurationEditor(
 
         row {
             cell(parentEditor.component)
+        }
+        group("Testing Framework") {
+            row {
+                comboBox(TestingFrameworkOptions.entries.toList())
+                    .label("Framework:")
+                    .bindItem({ runnerSettings.testingFramework }, { runnerSettings.testingFramework = it!! })
+            }
+                .layout(RowLayout.PARENT_GRID)
+                .rowComment($$"--test-framework=$value")
+
+            row {
+                textField()
+                    .label("Options:")
+                    .bindText(runnerSettings::testingFrameworkOptions)
+            }
+                .layout(RowLayout.PARENT_GRID)
+                .rowComment($$"--test-framework-options=$value")
         }
         group("Static Analyzer") {
             row {
