@@ -13,39 +13,6 @@
     <resource-bundle>messages.InfectionBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <projectConfigurable
-                instance="com.github.xepozz.infection.config.InfectionConfigurable"
-                bundle="messages.InfectionBundle"
-                key="configurable.quality.tool.php.infection"
-                id="settings.php.quality.tools.php.infection"
-                parentId="settings.php.quality.tools"
-                groupWeight="30"
-        />
-
-        <localInspection
-                language="PHP"
-                shortName="InfectionValidationInspection"
-                groupPath="PHP"
-                groupName="Quality tools"
-                enabledByDefault="true"
-                level="WEAK WARNING"
-                implementationClass="com.github.xepozz.infection.InfectionValidationInspection"
-                key="inspection.infection.display.name"/>
-
-        <!--        <globalInspection-->
-        <!--                language="PHP"-->
-        <!--                shortName="InfectionGlobal"-->
-        <!--                groupPath="PHP"-->
-        <!--                groupName="Quality tools"-->
-        <!--                enabledByDefault="true"-->
-        <!--                level="WEAK WARNING"-->
-        <!--                implementationClass="com.github.xepozz.infection.InfectionGlobalInspection"-->
-        <!--                key="inspection.infection.global.display.name"/>-->
-
-        <externalAnnotator
-                language="PHP"
-                implementationClass="com.github.xepozz.infection.InfectionAnnotatorProxy"/>
-
         <configurationType
                 implementation="com.github.xepozz.infection.tests.run.InfectionRunConfigurationType"/>
         <runConfigurationProducer
@@ -57,10 +24,6 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.jetbrains.php">
-        <tools.quality.type
-                implementation="com.github.xepozz.infection.InfectionQualityToolType"/>
-        <composerConfigClient
-                implementation="com.github.xepozz.infection.composer.InfectionComposerConfig"/>
         <openSettingsProvider
                 implementation="com.github.xepozz.infection.InfectionOpenSettingsProvider"/>
         <config.interpreters.PhpInterpretersStateListener
@@ -69,17 +32,6 @@
                 implementation="com.github.xepozz.infection.tests.InfectionFrameworkType"/>
     </extensions>
 
-    <extensionPoints>
-        <extensionPoint
-                dynamic="true"
-                name="infectionConfigurationProvider"
-                interface="com.github.xepozz.infection.config.InfectionConfigurationProvider"/>
-    </extensionPoints>
     <actions>
-        <action
-                id="com.github.xepozz.infection.InfectionAddToIgnoredAction"
-                class="com.github.xepozz.infection.InfectionAddToIgnoredAction">
-            <add-to-group group-id="PHPQualityToolsAddToIgnoredList" anchor="last"/>
-        </action>
     </actions>
 </idea-plugin>
