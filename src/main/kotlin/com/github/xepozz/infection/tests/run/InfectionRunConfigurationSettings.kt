@@ -5,7 +5,7 @@ import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 
 class InfectionRunConfigurationSettings : PhpTestRunConfigurationSettings() {
     override fun createDefault() = InfectionRunnerSettings().apply {
-        testRunnerOptions = "-q -n --no-progress --logger-gitlab=php://stdout"
+        testRunnerOptions = "-n --no-progress --teamcity"
     }
 
     override fun getRunnerSettings() = getInfectionRunnerSettings()
