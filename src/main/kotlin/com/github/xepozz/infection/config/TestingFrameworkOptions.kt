@@ -1,7 +1,7 @@
 package com.github.xepozz.infection.config
 
 enum class TestingFrameworkOptions(val title: String) {
-    NONE("None"),
+    AUTO("Autoo"),
     phpunit("PHPUnit"),
     codeception("Codeception"),
     phpspec("PHPSpec"),

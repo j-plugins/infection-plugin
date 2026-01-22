@@ -1,7 +1,7 @@
 package com.github.xepozz.infection.config
 
 enum class StaticAnalyzerOptions(val title: String) {
-    NONE("None"),
+    AUTO("Auto"),
     PSALM("Psalm"),
     PHPSTAN("PHP Stan"),
     MAGO("Mago"),
