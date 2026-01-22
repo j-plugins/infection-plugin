@@ -14,7 +14,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
 
     override fun prepareCommand(project: Project, commandSettings: PhpCommandSettings, exe: String, version: String?) {
         commandSettings.apply {
-            setScript(exe, false)
+            setScript(exe, true)
             addArgument("run")
 //            addArgument("--no-progress")
 //            addArgument("-n")
@@ -40,9 +40,9 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         workingDirectory: String
     ) {
         println("runDirectory: $directory")
-        if (!directory.isEmpty()) {
-//            phpCommandSettings.addArgument("--filter=$directory")
-        }
+        if (directory.isEmpty()) return
+
+        phpCommandSettings.addArgument("--filter=$directory")
     }
 
     override fun runFile(
@@ -52,9 +52,9 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         workingDirectory: String
     ) {
         println("runFile: $file")
-        if (!file.isEmpty()) {
-            phpCommandSettings.addArgument("--filter=$file")
-        }
+        if (file.isEmpty()) return
+
+        phpCommandSettings.addArgument("--filter=$file")
     }
 
     override fun runMethod(
