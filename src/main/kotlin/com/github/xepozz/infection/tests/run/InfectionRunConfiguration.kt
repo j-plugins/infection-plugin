@@ -12,6 +12,8 @@ import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.util.TextFieldCompletionProvider
 import com.jetbrains.php.config.commandLine.PhpCommandLinePathProcessor
+import com.jetbrains.php.config.commandLine.PhpCommandSettings
+import com.jetbrains.php.config.interpreters.PhpInterpreter
 import com.jetbrains.php.run.PhpAsyncRunConfiguration
 import com.jetbrains.php.run.remote.PhpRemoteInterpreterManager
 import com.jetbrains.php.testFramework.PhpTestFrameworkConfiguration
@@ -38,6 +40,21 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
                 println("addCompletionVariants: $text, $offset, $prefix")
             }
         }
+    }
+
+    override fun createCommand(
+        interpreter: PhpInterpreter,
+        env: Map<String?, String?>,
+        arguments: List<String?>,
+        withDebugger: Boolean
+    ): PhpCommandSettings {
+        if (withDebugger) {
+            if (env is HashMap) {
+                env["INFECTION_ALLOW_XDEBUG"] = "1"
+            }
+        }
+        println("envs: ${env.entries} widthDebugger: $withDebugger")
+        return super.createCommand(interpreter, env, arguments, withDebugger)
     }
 
     override fun createSettings() = InfectionRunConfigurationSettings()
