@@ -60,15 +60,15 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
 
         val arguments = arguments as MutableList
         if (runnerSettings.staticAnalyzer != StaticAnalyzerOptions.AUTO) {
-            arguments.add("--static-analysis-tool=${runnerSettings.staticAnalyzer.value}")
+            arguments.add("--static-analysis-tool=${runnerSettings.staticAnalyzer!!.value}")
         }
-        if (runnerSettings.staticAnalyzerOptions.isNotEmpty()) {
+        if (!runnerSettings.staticAnalyzerOptions.isNullOrEmpty()) {
             arguments.add("--static-analysis-tool-options=${runnerSettings.staticAnalyzerOptions}")
         }
         if (runnerSettings.testingFramework != TestingFrameworkOptions.AUTO) {
-            arguments.add("--test-framework=${runnerSettings.testingFramework.value}")
+            arguments.add("--test-framework=${runnerSettings.testingFramework!!.value}")
         }
-        if (runnerSettings.testingFrameworkOptions.isNotEmpty()) {
+        if (!runnerSettings.testingFrameworkOptions.isNullOrEmpty()) {
             arguments.add("--test-framework-options=${runnerSettings.testingFrameworkOptions}")
         }
 
