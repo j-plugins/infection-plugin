@@ -1,6 +1,8 @@
 package com.github.xepozz.infection.tests.run
 
 import com.github.xepozz.infection.InfectionBundle
+import com.github.xepozz.infection.config.StaticAnalyzerOptions
+import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.github.xepozz.infection.tests.InfectionConsoleProperties
 import com.github.xepozz.infection.tests.InfectionFrameworkType
 import com.intellij.codeInsight.completion.CompletionResultSet
@@ -54,6 +56,23 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
             }
         }
         println("envs: ${env.entries} widthDebugger: $withDebugger")
+        val runnerSettings = infectionSettings.runnerSettings
+
+        val arguments = arguments as MutableList
+        if (runnerSettings.staticAnalyzer != StaticAnalyzerOptions.AUTO) {
+            arguments.add("--static-analysis-tool=${runnerSettings.staticAnalyzer.value}")
+        }
+        if (runnerSettings.staticAnalyzerOptions.isNotEmpty()) {
+            arguments.add("--static-analysis-tool-options=${runnerSettings.staticAnalyzerOptions}")
+        }
+        if (runnerSettings.testingFramework != TestingFrameworkOptions.AUTO) {
+            arguments.add("--test-framework=${runnerSettings.testingFramework.value}")
+        }
+        if (runnerSettings.testingFrameworkOptions.isNotEmpty()) {
+            arguments.add("--test-framework-options=${runnerSettings.testingFrameworkOptions}")
+        }
+
+        println("arguments: $arguments")
         return super.createCommand(interpreter, env, arguments, withDebugger)
     }
 
