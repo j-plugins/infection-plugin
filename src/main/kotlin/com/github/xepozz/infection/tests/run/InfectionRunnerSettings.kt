@@ -13,10 +13,6 @@ class InfectionRunnerSettings(
     var coverageEngine: CoverageEngine = CoverageEngine.XDEBUG,
     var parallelTestingEnabled: Boolean = false,
 ) : PhpTestRunnerSettings() {
-    init {
-        scope = Scope.ConfigurationFile
-    }
-
     companion object {
         @JvmStatic
         fun fromPhpTestRunnerSettings(settings: PhpTestRunnerSettings): InfectionRunnerSettings {
