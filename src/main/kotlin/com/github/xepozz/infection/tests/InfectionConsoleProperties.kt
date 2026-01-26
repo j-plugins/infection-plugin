@@ -9,6 +9,11 @@ class InfectionConsoleProperties(
     config: InfectionRunConfiguration,
     executor: Executor,
 ) : SMTRunnerConsoleProperties(config, InfectionBundle.message("infection.local.run.display.name"), executor) {
-
+    override fun isIdBasedTestTree(): Boolean {
+        return true
+    }
     override fun isPrintTestingStartedTime() = false
+    override fun serviceMessageHasNewLinePrefix(): Boolean {
+        return super.serviceMessageHasNewLinePrefix()
+    }
 }
