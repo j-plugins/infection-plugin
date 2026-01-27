@@ -23,6 +23,11 @@
         <programRunner implementation="com.github.xepozz.infection.tests.run.InfectionDebugRunner"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="com.github.xepozz.infection.tests.InfectionTestStatusListener"
+                  topic="com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener"/>
+    </projectListeners>
+
     <extensions defaultExtensionNs="com.jetbrains.php">
         <openSettingsProvider
                 implementation="com.github.xepozz.infection.InfectionOpenSettingsProvider"/>
@@ -33,5 +38,11 @@
     </extensions>
 
     <actions>
+        <action id="com.github.xepozz.infection.tests.actions.InfectionTestAction"
+                class="com.github.xepozz.infection.tests.actions.InfectionTestAction"
+                text="Infection Test Action"
+                description="Action for Infection test">
+            <add-to-group group-id="TestTreePopupMenu" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>
