@@ -8,6 +8,8 @@ import com.intellij.execution.testframework.sm.runner.SMTestProxy
  * Format: JSON {"key1":"value1","key2":"value2"}
  */
 object TestProxyMetainfo {
+    const val KEY_MUTATION_ID = "mutationId"
+
     private val gson = Gson()
     private val mapType = object : TypeToken<Map<String, String>>() {}.type
 
