@@ -21,6 +21,8 @@
                 implementation="com.github.xepozz.infection.tests.runAnything.InfectionRunAnythingProvider"/>
 
         <programRunner implementation="com.github.xepozz.infection.tests.run.InfectionDebugRunner"/>
+<!--        <phpRunConfigurationExtension-->
+<!--                implementation="com.jetbrains.php.remote.docker.compose.PhpDockerRunConfigurationExtension"/>-->
     </extensions>
 
     <projectListeners>

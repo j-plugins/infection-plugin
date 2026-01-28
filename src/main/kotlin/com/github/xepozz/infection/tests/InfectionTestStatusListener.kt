@@ -1,15 +1,27 @@
 package com.github.xepozz.infection.tests
 
+import com.github.xepozz.infection.tests.run.InfectionRunConfiguration
 import com.intellij.execution.testframework.sm.runner.SMTRunnerEventsListener
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.openapi.diagnostic.Logger
 
 class InfectionTestStatusListener : SMTRunnerEventsListener {
     private val logger = Logger.getInstance(InfectionTestStatusListener::class.java)
-
+    override fun onRootPresentationAdded(
+        testsRoot: SMTestProxy.SMRootTestProxy,
+        rootName: String?,
+        comment: String?,
+        rootLocation: String?
+    ) {
+        logger.warn("Root presentation added: ${testsRoot.name} $rootName $comment $rootLocation")
+    }
     override fun onTestingStarted(testsRoot: SMTestProxy.SMRootTestProxy) {
-        testsRoot
         logger.warn("Testing started: ${testsRoot.name}")
+        if (testsRoot.root === testsRoot) {
+            val conf = testsRoot.testConsoleProperties.configuration as? InfectionRunConfiguration ?: return
+            logger.warn("Root")
+            testsRoot.addSystemOutput("Working directory: ${conf.infectionSettings.workingDirectory}\n")
+        }
     }
 
     override fun onTestingFinished(testsRoot: SMTestProxy.SMRootTestProxy) {

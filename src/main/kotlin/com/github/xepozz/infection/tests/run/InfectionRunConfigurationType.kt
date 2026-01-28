@@ -14,6 +14,7 @@ class InfectionRunConfigurationType :
         null,
         NotNullLazyValue.createValue { InfectionIcons.INFECTION },
     ) {
+
     override fun createTemplateConfiguration(project: Project) =
         InfectionRunConfiguration(project, this)
 
