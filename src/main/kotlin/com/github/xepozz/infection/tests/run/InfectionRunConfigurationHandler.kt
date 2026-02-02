@@ -4,11 +4,12 @@ import com.github.xepozz.infection.config.StaticAnalyzerOptions
 import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.github.xepozz.infection.tryRelativeTo
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.io.FileUtil
+import com.intellij.openapi.roots.ProjectFileIndex
+import com.intellij.openapi.vfs.VirtualFileManager
 import com.jetbrains.php.config.commandLine.PhpCommandSettings
 import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationHandler
-import java.io.File
-import java.util.HashMap
+import java.nio.file.Path
+import kotlin.io.path.relativeTo
 
 class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
     companion object {
@@ -66,10 +67,34 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         println("runFile: $file")
         if (file.isEmpty()) return
 
-        commandSettings.apply {
-            addArgument("--filter")
-            addPathArgument(file)
+        val path = Path.of(file)
+        val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(path)
+        if (virtualFile == null) {
+            println("File not found: $file")
+            return
         }
+
+        val workingDirectory = Path.of(workingDirectory)
+        val relativePath = virtualFile.toNioPath().relativeTo(workingDirectory)
+
+        val fileIndex = ProjectFileIndex.getInstance(project)
+
+        if (fileIndex.isInTestSourceContent(virtualFile)) {
+            commandSettings.apply {
+                addArgument("--test-framework-option")
+                addPathArgument(relativePath.toString())
+            }
+            return
+        }
+
+        if (fileIndex.isInSourceContent(virtualFile)) {
+            commandSettings.apply {
+                addArgument("--filter")
+                addPathArgument(relativePath.toString())
+                addArgument("--map-source-class-to-test")
+            }
+        }
+
     }
 
     override fun runMethod(

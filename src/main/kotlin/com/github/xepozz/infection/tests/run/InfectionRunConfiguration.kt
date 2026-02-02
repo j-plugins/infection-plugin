@@ -19,8 +19,6 @@ import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.NlsSafe
-import com.intellij.openapi.util.io.FileUtil
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.TextFieldCompletionProvider
 import com.intellij.util.containers.enumMapOf
@@ -38,8 +36,6 @@ import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationHandler
 import com.jetbrains.php.testFramework.run.PhpTestRunnerConfigurationEditor
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 import org.jetbrains.annotations.Nls
-import java.io.File
-import java.util.*
 
 class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory) : PhpTestRunConfiguration(
     project,
@@ -217,37 +213,37 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
                 val relativeConfigPath = configurationFilePath.tryRelativeTo(workingDirectory)
                 command.addPathArgument(relativeConfigPath)
             }
-//        TODO: we don't use scopes?
-//        val scope = testRunnerSettings.scope
-//        when (scope) {
-//            PhpTestRunnerSettings.Scope.Type -> handler.runType(
-//                project,
-//                command,
-//                StringUtil.notNullize(testRunnerSettings.selectedType),
-//                workingDirectory
-//            )
-//
-//            PhpTestRunnerSettings.Scope.Directory -> handler.runDirectory(
-//                project,
-//                command,
-//                StringUtil.notNullize(testRunnerSettings.directoryPath),
-//                workingDirectory
-//            )
-//
-//            PhpTestRunnerSettings.Scope.File -> handler.runFile(
-//                project,
-//                command,
-//                StringUtil.notNullize(testRunnerSettings.filePath),
-//                workingDirectory
-//            )
-//
-//            PhpTestRunnerSettings.Scope.Method -> {
-//                val filePath = StringUtil.notNullize(testRunnerSettings.filePath)
-//                handler.runMethod(project, command, filePath, testRunnerSettings.methodName, workingDirectory)
-//            }
-//
-//            PhpTestRunnerSettings.Scope.ConfigurationFile -> {}
-//        }
+
+            val scope = testRunnerSettings.scope
+            when (scope) {
+                PhpTestRunnerSettings.Scope.Type -> handler.runType(
+                    project,
+                    command,
+                    StringUtil.notNullize(testRunnerSettings.selectedType),
+                    workingDirectory
+                )
+
+                PhpTestRunnerSettings.Scope.Directory -> handler.runDirectory(
+                    project,
+                    command,
+                    StringUtil.notNullize(testRunnerSettings.directoryPath),
+                    workingDirectory
+                )
+
+                PhpTestRunnerSettings.Scope.File -> handler.runFile(
+                    project,
+                    command,
+                    StringUtil.notNullize(testRunnerSettings.filePath),
+                    workingDirectory
+                )
+
+                PhpTestRunnerSettings.Scope.Method -> {
+                    val filePath = StringUtil.notNullize(testRunnerSettings.filePath)
+                    handler.runMethod(project, command, filePath, testRunnerSettings.methodName, workingDirectory)
+                }
+
+                PhpTestRunnerSettings.Scope.ConfigurationFile -> {}
+            }
         }
     }
 }
