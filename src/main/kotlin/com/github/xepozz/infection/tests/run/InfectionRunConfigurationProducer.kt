@@ -7,12 +7,9 @@ import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiNamedElement
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.asSafely
 import com.jetbrains.php.lang.psi.PhpFile
 import com.jetbrains.php.lang.psi.elements.Method
-import com.jetbrains.php.lang.psi.elements.PhpClass
-import com.jetbrains.php.phpunit.PhpUnitTestDescriptor
 import com.jetbrains.php.testFramework.run.PhpTestConfigurationProducer
 
 class InfectionRunConfigurationProducer : PhpTestConfigurationProducer<InfectionRunConfiguration>(
@@ -39,10 +36,6 @@ class InfectionRunConfigurationProducer : PhpTestConfigurationProducer<Infection
         private val FILE_TO_SCOPE = { file: PsiFile? ->
             file
                 .asSafely<PhpFile>()
-                ?.let { phpFile ->
-                    PsiTreeUtil.findChildrenOfType(phpFile, PhpClass::class.java)
-                        .firstOrNull { PhpUnitTestDescriptor.INSTANCE.isTestClassName(it.name) }
-                }
         }
     }
 }
