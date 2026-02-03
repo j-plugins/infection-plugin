@@ -17,6 +17,8 @@ class InfectionRunnerSettings : PhpTestRunnerSettings() {
     var testingFramework: TestingFrameworkOptions = TestingFrameworkOptions.AUTO
     @Attribute("testing_framework_options")
     var testingFrameworkOptions: String = ""
+    @Attribute("command")
+    var command: String = "run"
     var coverageEngine: CoverageEngine = CoverageEngine.XDEBUG
     var parallelTestingEnabled: Boolean = false
 
@@ -38,6 +40,7 @@ class InfectionRunnerSettings : PhpTestRunnerSettings() {
                 infectionSettings.staticAnalyzerOptions = settings.staticAnalyzerOptions
                 infectionSettings.testingFramework = settings.testingFramework
                 infectionSettings.testingFrameworkOptions = settings.testingFrameworkOptions
+                infectionSettings.command = settings.command
             }
 
             return infectionSettings

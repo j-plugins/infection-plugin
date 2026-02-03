@@ -102,7 +102,7 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
 //        println("envs: ${env.entries} widthDebugger: $withDebugger")
         myHandler.prepareArguments(arguments, infectionSettings)
         myHandler.prepareEnv(env, withDebugger)
-        myHandler.prepareCommand(project, command, executablePath, null)
+        myHandler.prepareCommand(project, command, executablePath, null, infectionSettings.runnerSettings.command)
 
         command.importCommandLineSettings(settings.commandLineSettings, workingDirectory)
         command.addEnvs(env)
@@ -126,10 +126,8 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         names[PhpTestRunnerSettings.Scope.ConfigurationFile] = "Configuration File"
 
         val editor = getConfigurationEditor(names)
-        editor.setSupportedTypes(mutableListOf("All", "acceptance", "functional", "unit"))
         editor.setRunnerOptionsDocumentation("https://infection.github.io/guide/command-line-options.html")
 
-//        return this.addExtensionEditor(editor)!!
         return InfectionTestRunConfigurationEditor(editor, this)
     }
 

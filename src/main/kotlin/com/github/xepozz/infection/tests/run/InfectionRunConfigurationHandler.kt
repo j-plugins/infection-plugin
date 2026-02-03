@@ -25,11 +25,21 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         executable: String,
         version: String?,
     ) {
+        prepareCommand(project, commandSettings, executable, version, "run")
+    }
+
+    fun prepareCommand(
+        project: Project,
+        commandSettings: PhpCommandSettings,
+        executable: String,
+        version: String?,
+        command: String,
+    ) {
         commandSettings.apply {
             val executable = executable.tryRelativeTo(commandSettings.workingDirectory)
 
             setScript(executable, true)
-            addArgument("run")
+            addArgument(command)
         }
         println("commandSettings: $commandSettings")
     }
