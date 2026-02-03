@@ -116,15 +116,15 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         val runnerSettings = infectionSettings.runnerSettings
 
         if (runnerSettings.staticAnalyzer != StaticAnalyzerOptions.AUTO) {
-            arguments.add("--static-analysis-tool=${runnerSettings.staticAnalyzer!!.value}")
+            arguments.add("--static-analysis-tool=${runnerSettings.staticAnalyzer.value}")
         }
-        if (!runnerSettings.staticAnalyzerOptions.isNullOrEmpty()) {
+        if (runnerSettings.staticAnalyzerOptions.isNotEmpty()) {
             arguments.add("--static-analysis-tool-options=${runnerSettings.staticAnalyzerOptions}")
         }
         if (runnerSettings.testingFramework != TestingFrameworkOptions.AUTO) {
-            arguments.add("--test-framework=${runnerSettings.testingFramework!!.value}")
+            arguments.add("--test-framework=${runnerSettings.testingFramework.value}")
         }
-        if (!runnerSettings.testingFrameworkOptions.isNullOrEmpty()) {
+        if (runnerSettings.testingFrameworkOptions.isNotEmpty()) {
             arguments.add("--test-framework-options=${runnerSettings.testingFrameworkOptions}")
         }
     }

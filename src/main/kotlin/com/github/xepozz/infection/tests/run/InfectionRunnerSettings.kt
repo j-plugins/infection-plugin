@@ -8,18 +8,18 @@ import com.jetbrains.php.phpunit.coverage.PhpUnitCoverageEngine.CoverageEngine
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 
 @Tag("InfectionRunnerSettings")
-class InfectionRunnerSettings(
+class InfectionRunnerSettings : PhpTestRunnerSettings() {
     @Attribute("static_analyzer")
-    var staticAnalyzer: StaticAnalyzerOptions? = StaticAnalyzerOptions.AUTO,
+    var staticAnalyzer: StaticAnalyzerOptions = StaticAnalyzerOptions.AUTO
     @Attribute("static_analyzer_options")
-    var staticAnalyzerOptions: String? = "",
+    var staticAnalyzerOptions: String = ""
     @Attribute("testing_framework")
-    var testingFramework: TestingFrameworkOptions? = TestingFrameworkOptions.AUTO,
+    var testingFramework: TestingFrameworkOptions = TestingFrameworkOptions.AUTO
     @Attribute("testing_framework_options")
-    var testingFrameworkOptions: String? = "",
-    var coverageEngine: CoverageEngine? = CoverageEngine.XDEBUG,
-    var parallelTestingEnabled: Boolean? = false,
-) : PhpTestRunnerSettings() {
+    var testingFrameworkOptions: String = ""
+    var coverageEngine: CoverageEngine = CoverageEngine.XDEBUG
+    var parallelTestingEnabled: Boolean = false
+
     companion object {
         @JvmStatic
         fun fromPhpTestRunnerSettings(settings: PhpTestRunnerSettings): InfectionRunnerSettings {
@@ -34,10 +34,10 @@ class InfectionRunnerSettings(
             infectionSettings.configurationFilePath = settings.configurationFilePath
             infectionSettings.testRunnerOptions = settings.testRunnerOptions
             if (settings is InfectionRunnerSettings) {
-                settings.staticAnalyzer?.let { infectionSettings.staticAnalyzer = it }
-                settings.staticAnalyzerOptions?.let { infectionSettings.staticAnalyzerOptions = it }
-                settings.testingFramework?.let { infectionSettings.testingFramework = it }
-                settings.testingFrameworkOptions?.let { infectionSettings.testingFrameworkOptions = it }
+                infectionSettings.staticAnalyzer = settings.staticAnalyzer
+                infectionSettings.staticAnalyzerOptions = settings.staticAnalyzerOptions
+                infectionSettings.testingFramework = settings.testingFramework
+                infectionSettings.testingFrameworkOptions = settings.testingFrameworkOptions
             }
 
             return infectionSettings

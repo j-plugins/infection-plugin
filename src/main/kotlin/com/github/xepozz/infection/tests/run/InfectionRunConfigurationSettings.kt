@@ -1,5 +1,7 @@
 package com.github.xepozz.infection.tests.run
 
+import com.intellij.util.xmlb.annotations.Property
+import com.intellij.util.xmlb.annotations.Transient
 import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationSettings
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 
@@ -11,10 +13,12 @@ class InfectionRunConfigurationSettings : PhpTestRunConfigurationSettings() {
 
     override fun getRunnerSettings() = getInfectionRunnerSettings()
 
+    @Transient
     override fun setRunnerSettings(runnerSettings: PhpTestRunnerSettings) {
         super.setRunnerSettings(InfectionRunnerSettings.fromPhpTestRunnerSettings(runnerSettings))
     }
 
+    @Property(surroundWithTag = false)
     fun getInfectionRunnerSettings(): InfectionRunnerSettings {
         val settings = super.getRunnerSettings()
         if (settings is InfectionRunnerSettings) {

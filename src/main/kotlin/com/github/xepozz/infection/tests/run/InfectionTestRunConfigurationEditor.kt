@@ -103,9 +103,9 @@ class InfectionTestRunConfigurationEditor(
         parentEditor.applyTo(infectionRunConfiguration)
 
         val runnerSettings = infectionRunConfiguration.infectionSettings.runnerSettings
-        runnerSettings.testingFramework = testingFrameworkField.selectedItem as? TestingFrameworkOptions
+        runnerSettings.testingFramework = testingFrameworkField.selectedItem as? TestingFrameworkOptions ?: TestingFrameworkOptions.AUTO
         runnerSettings.testingFrameworkOptions = testingFrameworkOptionsField.text
-        runnerSettings.staticAnalyzer = staticAnalyzerField.selectedItem as? StaticAnalyzerOptions
+        runnerSettings.staticAnalyzer = staticAnalyzerField.selectedItem as? StaticAnalyzerOptions ?: StaticAnalyzerOptions.AUTO
         runnerSettings.staticAnalyzerOptions = staticAnalyzerOptionsField.text
     }
 }

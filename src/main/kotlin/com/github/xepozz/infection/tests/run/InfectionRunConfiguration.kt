@@ -46,7 +46,8 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
     InfectionRunConfigurationHandler.INSTANCE,
 ), PhpAsyncRunConfiguration {
     val myHandler = InfectionRunConfigurationHandler.INSTANCE
-    val infectionSettings
+
+    val infectionSettings: InfectionRunConfigurationSettings
         get() = settings as InfectionRunConfigurationSettings
 
     override fun createMethodFieldCompletionProvider(editor: PhpTestRunnerConfigurationEditor): TextFieldCompletionProvider {
@@ -117,8 +118,6 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         )
         return command
     }
-
-    @Throws(ExecutionException::class)
 
     override fun createSettings() = InfectionRunConfigurationSettings()
 
