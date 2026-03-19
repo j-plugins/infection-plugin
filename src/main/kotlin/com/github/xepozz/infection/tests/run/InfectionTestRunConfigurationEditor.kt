@@ -5,6 +5,7 @@ import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.SimpleListCellRenderer
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.RightGap
@@ -23,9 +24,13 @@ class InfectionTestRunConfigurationEditor(
     private val parentEditor: PhpTestRunConfigurationEditor,
     val configuration: InfectionRunConfiguration
 ) : SettingsEditor<InfectionRunConfiguration>() {
-    private val testingFrameworkField = ComboBox(TestingFrameworkOptions.entries.toTypedArray())
+    private val testingFrameworkField = ComboBox(TestingFrameworkOptions.entries.toTypedArray()).apply {
+        renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value?.title ?: "" }
+    }
     private val testingFrameworkOptionsField = JBTextField()
-    private val staticAnalyzerField = ComboBox(StaticAnalyzerOptions.entries.toTypedArray())
+    private val staticAnalyzerField = ComboBox(StaticAnalyzerOptions.entries.toTypedArray()).apply {
+        renderer = SimpleListCellRenderer.create { label, value, _ -> label.text = value?.title ?: "" }
+    }
     private val staticAnalyzerOptionsField = JBTextField()
     private val commandField = ComboBox(arrayOf("run")).apply {
         isEditable = true
