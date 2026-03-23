@@ -137,9 +137,9 @@ class InfectionTestRunConfigurationEditor(
     override fun resetEditorFrom(infectionRunConfiguration: InfectionRunConfiguration) {
         val runnerSettings = infectionRunConfiguration.infectionSettings.runnerSettings
         testingFrameworkField.selectedItem = runnerSettings.testingFramework
-        testingFrameworkOptionsField.text = runnerSettings.testingFrameworkOptions ?: ""
+        testingFrameworkOptionsField.text = runnerSettings.testingFrameworkOptions
         staticAnalyzerField.selectedItem = runnerSettings.staticAnalyzer
-        staticAnalyzerOptionsField.text = runnerSettings.staticAnalyzerOptions ?: ""
+        staticAnalyzerOptionsField.text = runnerSettings.staticAnalyzerOptions
         commandField.selectedItem = runnerSettings.command
 
         parentEditor.javaClass.declaredMethods.find { it.name == "resetEditorFrom" && it.parameterCount == 1 }?.let {
