@@ -4,6 +4,9 @@ import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.tests.run.InfectionRunConfiguration
 import com.intellij.execution.Executor
 import com.intellij.execution.impl.ConsoleViewImpl
+import com.intellij.execution.testframework.TestConsoleProperties
+import com.intellij.execution.testframework.sm.SMCustomMessagesParsing
+import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.execution.testframework.sm.runner.ui.SMTRunnerConsoleView
 import com.intellij.execution.ui.ConsoleView
@@ -13,7 +16,8 @@ class InfectionConsoleProperties(
     config: InfectionRunConfiguration,
     executor: Executor,
     val pathMapper: PhpPathMapper,
-) : SMTRunnerConsoleProperties(config, InfectionBundle.message("infection.local.run.display.name"), executor) {
+) : SMTRunnerConsoleProperties(config, InfectionBundle.message("infection.local.run.display.name"), executor),
+    SMCustomMessagesParsing {
     private val myTestLocator = InfectionTestLocator(pathMapper)
 
     override fun setConsole(console: ConsoleView?) {
@@ -31,6 +35,12 @@ class InfectionConsoleProperties(
     }
 
     override fun getTestLocator() = myTestLocator
+
+    override fun createTestEventsConverter(
+        testFrameworkName: String,
+        consoleProperties: TestConsoleProperties,
+    ): OutputToGeneralTestEventsConverter =
+        InfectionTestEventsConverter(testFrameworkName, consoleProperties)
 
     override fun isPrintTestingStartedTime() = true
     override fun serviceMessageHasNewLinePrefix(): Boolean {
