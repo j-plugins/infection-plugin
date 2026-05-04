@@ -43,7 +43,4 @@ class InfectionConsoleProperties(
         InfectionTestEventsConverter(testFrameworkName, consoleProperties)
 
     override fun isPrintTestingStartedTime() = true
-    override fun serviceMessageHasNewLinePrefix(): Boolean {
-        return super.serviceMessageHasNewLinePrefix()
-    }
 }
