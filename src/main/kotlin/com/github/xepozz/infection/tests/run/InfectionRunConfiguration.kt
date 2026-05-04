@@ -182,7 +182,6 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
             this,
             executor,
             pathMapper,
-//            InfectionLocationProvider(pathMapper, this.project, this.getConfigurationFileRootPath())
         )
     }
 
