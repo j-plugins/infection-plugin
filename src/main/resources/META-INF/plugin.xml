@@ -13,6 +13,27 @@
     <resource-bundle>messages.InfectionBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
+        <projectService
+                serviceImplementation="com.github.xepozz.infection.results.MutationResultsService"/>
+        <statusBarWidgetFactory
+                id="InfectionMsi"
+                order="last"
+                implementation="com.github.xepozz.infection.statusbar.InfectionMsiWidgetFactory"/>
+        <localInspection
+                language="PHP"
+                shortName="InfectionEscapedMutant"
+                bundle="messages.InfectionBundle"
+                groupBundle="messages.InfectionBundle"
+                groupKey="inspection.group.mutationTesting"
+                key="inspection.escapedMutant.displayName"
+                enabledByDefault="true"
+                level="WEAK WARNING"
+                implementationClass="com.github.xepozz.infection.inspection.EscapedMutantInspection"/>
+        <codeInsight.lineMarkerProvider
+                language="PHP"
+                implementationClass="com.github.xepozz.infection.gutter.InfectionMutationLineMarkerProvider"/>
+        <postStartupActivity
+                implementation="com.github.xepozz.infection.gutter.MutationResultsRefresherActivity"/>
         <configurationType
                 implementation="com.github.xepozz.infection.tests.run.InfectionRunConfigurationType"/>
         <runConfigurationProducer
@@ -45,6 +66,12 @@
                 text="Copy Mutation ID"
                 description="Copy mutation ID to clipboard">
             <add-to-group group-id="TestTreePopupMenu" anchor="last"/>
+        </action>
+        <action id="com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction"
+                class="com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction"
+                text="Show Stored Infection Mutants"
+                description="Diagnostic: list every mutant currently held by the plugin">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>
 </idea-plugin>

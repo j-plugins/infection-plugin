@@ -9,6 +9,10 @@ import com.intellij.execution.testframework.sm.runner.SMTestProxy
  */
 object TestProxyMetainfo {
     const val KEY_MUTATION_ID = "mutationId"
+    const val KEY_MUTATOR_NAME = "mutatorName"
+    const val KEY_ORIGINAL_CODE = "originalCode"
+    const val KEY_MUTATED_CODE = "mutatedCode"
+    const val KEY_STATUS = "status"
 
     private val gson = Gson()
     private val mapType = object : TypeToken<Map<String, String>>() {}.type
@@ -21,6 +25,9 @@ object TestProxyMetainfo {
         val metainfo = proxy.metainfo ?: return emptyMap()
         return deserialize(metainfo)
     }
+
+    fun serialize(attributes: Map<String, String>): String =
+        if (attributes.isEmpty()) "" else gson.toJson(attributes)
 
     private fun deserialize(metainfo: String): Map<String, String> {
         if (metainfo.isBlank()) return emptyMap()
