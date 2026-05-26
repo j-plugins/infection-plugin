@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.results
 
+import com.github.xepozz.infection.InfectionBundle
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffManager
 import com.intellij.diff.contents.DocumentContent
@@ -27,11 +28,12 @@ object MutantDiffViewer {
         val sourceFile = hintFile ?: LocalFileSystem.getInstance().findFileByPath(record.filePath)
 
         val request = SimpleDiffRequest(
-            "Mutant `${record.mutatorName}` · ${record.filePath.substringAfterLast('/')}",
+            InfectionBundle.message("diff.title", record.mutatorName, record.filePath.substringAfterLast('/')),
             content(project, texts.original, sourceFile),
             content(project, texts.mutated, sourceFile),
-            if (texts.isFullFile) "Original (full file)" else "Original",
-            "Mutated · ${record.mutatorName}",
+            if (texts.isFullFile) InfectionBundle.message("diff.original.full")
+            else InfectionBundle.message("diff.original"),
+            InfectionBundle.message("diff.mutated", record.mutatorName),
         )
         DiffManager.getInstance().showDiff(project, request)
     }

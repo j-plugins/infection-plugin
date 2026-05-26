@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.statusbar
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.results.MutationResultsService
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
@@ -15,7 +16,7 @@ class InfectionMsiWidgetFactory : StatusBarWidgetFactory {
 
     override fun getId(): String = InfectionMsiWidget.ID
 
-    override fun getDisplayName(): String = "Infection MSI"
+    override fun getDisplayName(): String = InfectionBundle.message("widget.msi.factory.displayName")
 
     override fun isAvailable(project: Project): Boolean {
         if (project.isDisposed) return false

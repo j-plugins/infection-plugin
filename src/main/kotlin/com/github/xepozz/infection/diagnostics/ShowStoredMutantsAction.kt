@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.diagnostics
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.results.MutantAnchor
 import com.github.xepozz.infection.results.MutationResultsService
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -21,7 +22,9 @@ import javax.swing.JTextArea
  * including how each saved mutant re-anchors against the current file text. Use this to debug
  * "the marker doesn't show up" issues without attaching a debugger.
  */
-class ShowStoredMutantsAction : AnAction("Show Stored Infection Mutants") {
+class ShowStoredMutantsAction : AnAction(
+    InfectionBundle.message("action.com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction.text")
+) {
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
 
@@ -38,7 +41,11 @@ class ShowStoredMutantsAction : AnAction("Show Stored Infection Mutants") {
             CommonDataKeys.PSI_FILE.getData(e.dataContext)
         }?.text)
         if (stats.totalMutants == 0) {
-            Messages.showInfoMessage(project, "No mutation results stored.\n\n$report", "Infection Diagnostics")
+            Messages.showInfoMessage(
+                project,
+                InfectionBundle.message("diagnostics.noResults", report),
+                InfectionBundle.message("diagnostics.messageTitle"),
+            )
             return
         }
         ReportDialog(project, report).show()
@@ -106,9 +113,9 @@ class ShowStoredMutantsAction : AnAction("Show Stored Infection Mutants") {
     private class ReportDialog(project: com.intellij.openapi.project.Project, val report: String) :
         DialogWrapper(project, false) {
         init {
-            title = "Stored Infection Mutants"
-            setOKButtonText("Copy")
-            setCancelButtonText("Close")
+            title = InfectionBundle.message("diagnostics.dialog.title")
+            setOKButtonText(InfectionBundle.message("diagnostics.dialog.copy"))
+            setCancelButtonText(InfectionBundle.message("diagnostics.dialog.close"))
             init()
         }
 

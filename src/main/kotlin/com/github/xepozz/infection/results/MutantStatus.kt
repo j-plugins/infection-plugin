@@ -1,12 +1,17 @@
 package com.github.xepozz.infection.results
 
-enum class MutantStatus(val displayName: String) {
-    KILLED("Killed"),
-    ESCAPED("Escaped"),
-    TIMED_OUT("Timed out"),
-    NOT_COVERED("Not covered"),
-    ERROR("Error"),
-    UNKNOWN("Unknown");
+import com.github.xepozz.infection.InfectionBundle
+
+enum class MutantStatus(private val displayNameKey: String) {
+    KILLED("mutant.status.killed"),
+    ESCAPED("mutant.status.escaped"),
+    TIMED_OUT("mutant.status.timedOut"),
+    NOT_COVERED("mutant.status.notCovered"),
+    ERROR("mutant.status.error"),
+    UNKNOWN("mutant.status.unknown");
+
+    val displayName: String
+        get() = InfectionBundle.message(displayNameKey)
 
     /**
      * Whether this status is worth surfacing in the editor gutter.

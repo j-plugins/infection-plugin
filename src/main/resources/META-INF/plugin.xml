@@ -62,15 +62,11 @@
 
     <actions>
         <action id="com.github.xepozz.infection.tests.actions.CopyMutationIdAction"
-                class="com.github.xepozz.infection.tests.actions.CopyMutationIdAction"
-                text="Copy Mutation ID"
-                description="Copy mutation ID to clipboard">
+                class="com.github.xepozz.infection.tests.actions.CopyMutationIdAction">
             <add-to-group group-id="TestTreePopupMenu" anchor="last"/>
         </action>
         <action id="com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction"
-                class="com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction"
-                text="Show Stored Infection Mutants"
-                description="Diagnostic: list every mutant currently held by the plugin">
+                class="com.github.xepozz.infection.diagnostics.ShowStoredMutantsAction">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </action>
     </actions>

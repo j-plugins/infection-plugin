@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.gutter
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.InfectionIcons
 import com.github.xepozz.infection.results.MutantAnchor
 import com.github.xepozz.infection.results.MutantRecord
@@ -57,7 +58,7 @@ class InfectionMutationLineMarkerProvider : LineMarkerProvider {
             { tooltip(interesting, killedCount) },
             MutantGutterClickHandler(interesting),
             GutterIconRenderer.Alignment.LEFT,
-            { "Infection mutation: ${primary.mutatorName}" },
+            { InfectionBundle.message("gutter.tooltip.accessibleName", primary.mutatorName) },
         )
     }
 
@@ -84,22 +85,28 @@ class InfectionMutationLineMarkerProvider : LineMarkerProvider {
         if (interesting.size == 1) {
             val r = interesting.single()
             append("<b>").append(r.mutatorName).append("</b><br/>")
-            append("Status: <b>").append(r.status.displayName).append("</b>")
+            append(InfectionBundle.message("gutter.tooltip.status"))
+                .append(" <b>").append(r.status.displayName).append("</b>")
             if (r.mutationId.isNotEmpty()) {
-                append("<br/><small>ID: ").append(r.mutationId).append("</small>")
+                append("<br/><small>")
+                    .append(InfectionBundle.message("gutter.tooltip.id"))
+                    .append(" ").append(r.mutationId).append("</small>")
             }
         } else {
-            append("<b>").append(interesting.size).append(" surviving mutants on this line</b><br/>")
+            append("<b>")
+                .append(InfectionBundle.message("gutter.tooltip.survivingMutants", interesting.size))
+                .append("</b><br/>")
             interesting.forEach {
                 append("• <b>").append(it.mutatorName).append("</b> — ")
                 append(it.status.displayName).append("<br/>")
             }
         }
         if (killedCount > 0) {
+            val key = if (killedCount == 1) "gutter.tooltip.killedNotShownOne"
+            else "gutter.tooltip.killedNotShownMany"
             append("<br/><small><i>")
-            append("and ").append(killedCount).append(" killed mutant")
-            if (killedCount != 1) append("s")
-            append(" not shown</i></small>")
+                .append(InfectionBundle.message(key, killedCount))
+                .append("</i></small>")
         }
         append("</body></html>")
     }

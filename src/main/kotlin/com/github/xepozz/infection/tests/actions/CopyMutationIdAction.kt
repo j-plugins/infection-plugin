@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.tests.actions
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.InfectionIcons
 import com.github.xepozz.infection.tests.metainfo.TestProxyMetainfo
 import com.intellij.execution.testframework.AbstractTestProxy
@@ -12,7 +13,8 @@ import com.intellij.openapi.ide.CopyPasteManager
 class CopyMutationIdAction : AnAction() {
     init {
         templatePresentation.icon = InfectionIcons.INFECTION
-        templatePresentation.text = "Copy Mutation ID"
+        templatePresentation.text =
+            InfectionBundle.message("action.com.github.xepozz.infection.tests.actions.CopyMutationIdAction.text")
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -29,7 +31,7 @@ class CopyMutationIdAction : AnAction() {
 
         if (visible) {
             val mutationId = TestProxyMetainfo.getAttribute(node, TestProxyMetainfo.KEY_MUTATION_ID) ?: return
-            e.presentation.text = "Copy Mutation ID: $mutationId"
+            e.presentation.text = InfectionBundle.message("action.copyMutationId.withId.text", mutationId)
         }
     }
 

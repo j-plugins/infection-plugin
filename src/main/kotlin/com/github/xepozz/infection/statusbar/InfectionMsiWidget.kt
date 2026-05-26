@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.statusbar
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.config.json.InfectionJsonReader
 import com.github.xepozz.infection.results.MutationResultsListener
 import com.github.xepozz.infection.results.MutationResultsService
@@ -78,12 +79,12 @@ class InfectionMsiWidget(private val project: Project) : CustomStatusBarWidget {
 
     private fun render(stats: MutationStats) {
         if (!stats.hasData) {
-            label.text = "MSI: —"
+            label.text = InfectionBundle.message("widget.msi.empty")
             label.foreground = NEUTRAL
-            label.toolTipText = "Infection: no run yet. Click to open Run tool window."
+            label.toolTipText = InfectionBundle.message("widget.msi.noRunTooltip")
             return
         }
-        label.text = "MSI: %.1f%%".format(stats.msi)
+        label.text = InfectionBundle.message("widget.msi.text", "%.1f%%".format(stats.msi))
         label.foreground = pickColor(stats)
         label.toolTipText = buildTooltip(stats)
     }
@@ -107,17 +108,27 @@ class InfectionMsiWidget(private val project: Project) : CustomStatusBarWidget {
 
     private fun buildTooltip(stats: MutationStats): String = buildString {
         append("<html><body style='padding: 4px;'>")
-        append("<b>MSI:</b> ").append("%.2f%%".format(stats.msi))
-        stats.minMsiThreshold?.let { append(" <i>(min ").append(it).append("%)</i>") }
+        append("<b>").append(InfectionBundle.message("widget.msi.tooltip.msi")).append("</b> ")
+            .append("%.2f%%".format(stats.msi))
+        stats.minMsiThreshold?.let {
+            append(" <i>(").append(InfectionBundle.message("widget.msi.tooltip.minThreshold", it)).append(")</i>")
+        }
         append("<br/>")
-        append("<b>Covered MSI:</b> ").append("%.2f%%".format(stats.coveredMsi))
-        stats.minCoveredMsiThreshold?.let { append(" <i>(min ").append(it).append("%)</i>") }
+        append("<b>").append(InfectionBundle.message("widget.msi.tooltip.coveredMsi")).append("</b> ")
+            .append("%.2f%%".format(stats.coveredMsi))
+        stats.minCoveredMsiThreshold?.let {
+            append(" <i>(").append(InfectionBundle.message("widget.msi.tooltip.minThreshold", it)).append(")</i>")
+        }
         append("<br/>")
-        append("Killed: <b>").append(stats.killed).append("</b> · ")
-        append("Escaped: <b>").append(stats.escaped).append("</b> · ")
-        append("Timeout: <b>").append(stats.timedOut).append("</b> · ")
-        append("Not covered: <b>").append(stats.notCovered).append("</b><br/>")
-        append("<i>Total: ").append(stats.totalMutants).append(" mutants</i>")
+        append(InfectionBundle.message("widget.msi.tooltip.killed")).append(" <b>")
+            .append(stats.killed).append("</b> · ")
+        append(InfectionBundle.message("widget.msi.tooltip.escaped")).append(" <b>")
+            .append(stats.escaped).append("</b> · ")
+        append(InfectionBundle.message("widget.msi.tooltip.timeout")).append(" <b>")
+            .append(stats.timedOut).append("</b> · ")
+        append(InfectionBundle.message("widget.msi.tooltip.notCovered")).append(" <b>")
+            .append(stats.notCovered).append("</b><br/>")
+        append("<i>").append(InfectionBundle.message("widget.msi.tooltip.total", stats.totalMutants)).append("</i>")
         if (stats.runTimestamp > 0L) {
             append("<br/><i>")
             append(SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Date(stats.runTimestamp)))

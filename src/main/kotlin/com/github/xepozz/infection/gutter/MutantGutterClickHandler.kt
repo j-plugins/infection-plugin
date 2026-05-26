@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.gutter
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.results.MutantDiffViewer
 import com.github.xepozz.infection.results.MutantRecord
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler
@@ -34,7 +35,7 @@ class MutantGutterClickHandler(private val records: List<MutantRecord>) :
             // mutant's actions into its own submenu. Disambiguate same-mutator entries with the
             // mutation hash so the user can tell them apart.
             val needsHash = records.groupBy { it.mutatorName }.any { it.value.size > 1 }
-            group.add(Separator.create("${records.size} mutants on this line"))
+            group.add(Separator.create(InfectionBundle.message("gutter.mutantsOnLine", records.size)))
             records.forEach { record ->
                 val title = buildString {
                     append(record.mutatorName).append(" · ").append(record.status.displayName)
@@ -74,7 +75,7 @@ class MutantGutterClickHandler(private val records: List<MutantRecord>) :
     private class ShowDiffAction(
         private val project: Project,
         private val record: MutantRecord,
-    ) : AnAction("Show Mutant Diff") {
+    ) : AnAction(InfectionBundle.message("action.gutter.showMutantDiff.text")) {
         override fun actionPerformed(e: AnActionEvent) {
             MutantDiffViewer.show(project, record)
         }
@@ -84,7 +85,7 @@ class MutantGutterClickHandler(private val records: List<MutantRecord>) :
         private val project: Project,
         private val element: PsiElement,
         private val record: MutantRecord,
-    ) : AnAction("Mark with @infection-ignore") {
+    ) : AnAction(InfectionBundle.message("action.gutter.markIgnore.text")) {
         override fun actionPerformed(e: AnActionEvent) {
             val file = element.containingFile ?: return
             if (!file.isWritable) return
@@ -98,7 +99,9 @@ class MutantGutterClickHandler(private val records: List<MutantRecord>) :
         }
     }
 
-    private class CopyIdAction(private val record: MutantRecord) : AnAction("Copy Mutation ID") {
+    private class CopyIdAction(private val record: MutantRecord) : AnAction(
+        InfectionBundle.message("action.com.github.xepozz.infection.tests.actions.CopyMutationIdAction.text")
+    ) {
         override fun actionPerformed(e: AnActionEvent) {
             CopyPasteManager.copyTextToClipboard(record.mutationId)
         }

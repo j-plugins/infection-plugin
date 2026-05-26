@@ -1,5 +1,6 @@
 package com.github.xepozz.infection.tests.run
 
+import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.config.StaticAnalyzerOptions
 import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.intellij.openapi.options.SettingsEditor
@@ -39,7 +40,7 @@ class InfectionTestRunConfigurationEditor(
     val commandPanel = panel {
         row {
             cell(commandField)
-                .label("Command")
+                .label(InfectionBundle.message("infection.editor.command.label"))
                 .align(AlignX.FILL)
         }
     }
@@ -66,9 +67,9 @@ class InfectionTestRunConfigurationEditor(
                 .align(AlignX.FILL)
         }.layout(RowLayout.LABEL_ALIGNED)
 
-        group("Testing Framework") {
+        group(InfectionBundle.message("infection.editor.testingFramework.group")) {
             row {
-                label("Framework")
+                label(InfectionBundle.message("infection.editor.testingFramework.label"))
                     .gap(RightGap.COLUMNS)
                 cell(testingFrameworkField)
                     .align(AlignX.FILL)
@@ -77,7 +78,7 @@ class InfectionTestRunConfigurationEditor(
                 .rowComment($$"--test-framework=$value")
 
             row {
-                label("Options")
+                label(InfectionBundle.message("infection.editor.options.label"))
                     .gap(RightGap.COLUMNS)
                 cell(testingFrameworkOptionsField)
                     .align(AlignX.FILL)
@@ -85,9 +86,9 @@ class InfectionTestRunConfigurationEditor(
                 .layout(RowLayout.PARENT_GRID)
                 .rowComment($$"--test-framework-options=$value")
         }.layout(RowLayout.PARENT_GRID)
-        group("Static Analyzer") {
+        group(InfectionBundle.message("infection.editor.staticAnalyzer.group")) {
             row {
-                label("Analyzer")
+                label(InfectionBundle.message("infection.editor.staticAnalyzer.label"))
                     .gap(RightGap.COLUMNS)
                 cell(staticAnalyzerField)
                     .align(AlignX.FILL)
@@ -96,7 +97,7 @@ class InfectionTestRunConfigurationEditor(
                 .rowComment($$"--static-analysis-tool=$value")
 
             row {
-                label("Options")
+                label(InfectionBundle.message("infection.editor.options.label"))
                     .gap(RightGap.COLUMNS)
                 cell(staticAnalyzerOptionsField)
                     .align(AlignX.FILL)
