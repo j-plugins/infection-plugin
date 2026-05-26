@@ -1,14 +1,5 @@
 package com.github.xepozz.infection.tests
 
-/**
- * Parsed shape of a TeamCity `locationHint` URL emitted by Infection.
- *
- * Two URL shapes are supported:
- *  - `file:///abs/path/source.php` — references a whole source file (suite-level).
- *  - `infection:///abs/path/source.php::startFilePos-endFilePos` — references an exact character
- *    range inside a source file (an individual mutation). Both offsets are inclusive char offsets
- *    in the file, as reported by Infection's `Mutation::getAttributes()`.
- */
 sealed interface InfectionLocationHint {
     val filePath: String
 
@@ -26,27 +17,18 @@ sealed interface InfectionLocationHint {
 
         private const val SCHEME_SEPARATOR = "://"
 
-        /**
-         * Parses a full TeamCity `locationHint` URL into [InfectionLocationHint].
-         * Returns `null` for unsupported protocols, a missing `://`, or a malformed infection range.
-         */
         fun parse(url: String): InfectionLocationHint? {
             val sep = url.indexOf(SCHEME_SEPARATOR)
             if (sep <= 0) return null
             val protocol = url.substring(0, sep)
             val path = url.substring(sep + SCHEME_SEPARATOR.length)
             return when (protocol) {
-                PROTOCOL_FILE -> path.takeIf { it.isNotEmpty() }?.let(::File)
+                PROTOCOL_FILE -> path.takeIf { it.isNotEmpty() && !it.contains("::") }?.let(::File)
                 PROTOCOL_INFECTION -> parseInfectionPath(path)
                 else -> null
             }
         }
 
-        /**
-         * Parses the path portion of an `infection://…` URL — `/abs/path/source.php::startPos-endPos`.
-         * Returns `null` for any malformed input (missing `::`, missing `-`, non-numeric range,
-         * negative start, or `end < start`).
-         */
         fun parseInfectionPath(path: String): Mutation? {
             val sep = path.lastIndexOf("::")
             if (sep <= 0) return null

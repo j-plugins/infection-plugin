@@ -2,30 +2,17 @@ package com.github.xepozz.infection.tests
 
 import com.intellij.execution.testframework.TestConsoleProperties
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter
-import com.intellij.openapi.application.ApplicationManager
+import com.intellij.execution.testframework.sm.runner.events.TestFailedEvent
+import com.intellij.execution.testframework.sm.runner.events.TestOutputEvent
 import com.intellij.openapi.diagnostic.Logger
-import com.intellij.openapi.fileEditor.FileDocumentManager
-import com.intellij.openapi.util.Computable
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtilCore
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessage
 import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor
+import jetbrains.buildServer.messages.serviceMessages.TestFailed
+import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Rewrites Infection's `testFailed` service messages **before** they reach the standard
- * proxy state machine, so we get exactly one [com.intellij.execution.testframework.stacktrace.DiffHyperlink]
- * per failure (not a [com.intellij.execution.testframework.sm.runner.states.CompoundTestFailedState]
- * with stacked hyperlinks, which is what re-calling `setTestComparisonFailed` from a listener produces).
- *
- * Wire we get from Infection (`MutationAnalysis\TeamCity\TeamCity`):
- *  - `testStarted` carries `locationHint=infection:///<abs path>::<start>-<end>` (or `file:///…`
- *    for suite-level events) — we capture `nodeId → filePath` from it.
- *  - `testFailed` then carries `type=comparisonFailure`, `actual=<original snippet>`,
- *    `expected=<mutated snippet>` and references the same `nodeId`.
- *
- * Wire we hand to the standard parser:
- *  - `expected=<full original file content>` (matches what the IDE loads from the resolved path)
- *  - `actual=<full mutated file content>` (original spliced with the mutation)
- */
 class InfectionTestEventsConverter(
     testFrameworkName: String,
     consoleProperties: TestConsoleProperties,
@@ -33,59 +20,81 @@ class InfectionTestEventsConverter(
 
     private val logger = Logger.getInstance(InfectionTestEventsConverter::class.java)
 
-    /** path → (modificationStamp, fullContent), valid for one test run. */
-    private val fileCache = mutableMapOf<String, Pair<Long, String>>()
+    private val fileCache = ConcurrentHashMap<String, Pair<Long, String>>()
 
-    /** nodeId → source file path, captured from `testStarted`/`testSuiteStarted` locationHints. */
-    private val nodeFiles = mutableMapOf<String, String>()
+    private val nodeFiles = ConcurrentHashMap<String, NodeLocation>()
+
+    private val testNodeIds = ConcurrentHashMap<String, String>()
+
+    private data class NodeLocation(val filePath: String, val mutationRange: IntRange?)
 
     override fun processServiceMessage(message: ServiceMessage, visitor: ServiceMessageVisitor) {
+        var handled = false
         try {
-            captureNodeFile(message)
-            enrichTestFailed(message)
+            captureNodeIds(message)
+            releaseNodeIds(message)
+            handled = dispatchComparisonFailure(message) || dispatchOrphanOutput(message)
         } catch (e: Throwable) {
             logger.warn("[infection-converter] enrichment failed for ${message.messageName}", e)
         }
-        super.processServiceMessage(message, visitor)
+        if (!handled) super.processServiceMessage(message, visitor)
     }
 
     override fun finishTesting() {
         fileCache.clear()
         nodeFiles.clear()
+        testNodeIds.clear()
         super.finishTesting()
     }
 
-    private fun captureNodeFile(message: ServiceMessage) {
+    private fun captureNodeIds(message: ServiceMessage) {
         if (message.messageName != "testStarted" && message.messageName != "testSuiteStarted") return
         val attrs = message.attributes
         val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return
+        attrs["name"]?.takeIf { it.isNotEmpty() }?.let { testNodeIds[it] = nodeId }
+
         val locationHint = attrs["locationHint"]?.takeIf { it.isNotEmpty() } ?: return
-        val filePath = InfectionLocationHint.parse(locationHint)?.filePath ?: return
-        nodeFiles[nodeId] = filePath
+        val parsed = InfectionLocationHint.parse(locationHint) ?: return
+        val range = (parsed as? InfectionLocationHint.Mutation)
+            ?.let { it.startOffset..it.endOffsetInclusive }
+        nodeFiles[nodeId] = NodeLocation(parsed.filePath, range)
     }
 
-    private fun enrichTestFailed(message: ServiceMessage) {
-        if (message.messageName != "testFailed") return
+    private fun releaseNodeIds(message: ServiceMessage) {
+        if (message.messageName != "testFinished" && message.messageName != "testSuiteFinished") return
         val attrs = message.attributes
-        if (attrs["type"] != "comparisonFailure") return
+        attrs["nodeId"]?.takeIf { it.isNotEmpty() }?.let { nodeFiles.remove(it) }
+        attrs["name"]?.takeIf { it.isNotEmpty() }?.let { testNodeIds.remove(it) }
+    }
 
-        val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return
-        val filePath = nodeFiles[nodeId] ?: run {
+    private fun dispatchComparisonFailure(message: ServiceMessage): Boolean {
+        if (message !is TestFailed) return false
+        val attrs = message.attributes
+        if (attrs["type"] != "comparisonFailure") return false
+
+        val name = attrs["name"]?.takeIf { it.isNotEmpty() } ?: return false
+        val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return false
+        val failureMessage = attrs["message"]?.takeIf { it.isNotEmpty() } ?: run {
+            logger.warn("[infection-converter] testFailed missing 'message' attribute for nodeId=$nodeId")
+            return false
+        }
+        val location = nodeFiles[nodeId] ?: run {
             logger.warn("[infection-converter] no locationHint captured for nodeId=$nodeId")
-            return
+            return false
         }
-        // Infection's inversion: wire `actual` carries original snippet, wire `expected` carries mutated snippet.
-        val originalSnippet = attrs["actual"]?.takeIf { it.isNotEmpty() } ?: return
-        val mutatedSnippet = attrs["expected"]?.takeIf { it.isNotEmpty() } ?: return
+        val processor = processor ?: return false
 
-        val originalFull = readFileContent(filePath) ?: run {
-            logger.warn("[infection-converter] cannot read $filePath")
-            return
+        val originalSnippet = attrs["actual"]?.takeIf { it.isNotEmpty() } ?: return false
+        val mutatedSnippet = attrs["expected"]?.takeIf { it.isNotEmpty() } ?: return false
+
+        val originalFull = readFileContent(location.filePath) ?: run {
+            logger.warn("[infection-converter] cannot read ${location.filePath}")
+            return false
         }
-        val snippetStart = originalFull.indexOf(originalSnippet)
+        val snippetStart = findAnchoredSnippet(originalFull, originalSnippet, location.mutationRange)
         if (snippetStart < 0) {
-            logger.warn("[infection-converter] snippet not found in $filePath")
-            return
+            logger.warn("[infection-converter] snippet not found in ${location.filePath}")
+            return false
         }
         val mutatedFull = buildString {
             append(originalFull, 0, snippetStart)
@@ -93,37 +102,65 @@ class InfectionTestEventsConverter(
             append(originalFull, snippetStart + originalSnippet.length, originalFull.length)
         }
 
-        // Swap the inversion: now expected=original (matches the file on disk),
-        // actual=mutated (synthetic). This is the IDE-natural semantic.
-        mutateAttributes(
-            message,
-            mapOf(
-                "expected" to originalFull,
-                "actual" to mutatedFull,
-            ),
+        processor.onTestFailure(
+            TestFailedEvent(
+                name,
+                nodeId,
+                failureMessage,
+                attrs["details"],
+                attrs["error"] != null,
+                mutatedFull,
+                originalFull,
+                location.filePath,
+                null,
+                false,
+                false,
+                attrs["duration"]?.toLongOrNull() ?: -1L,
+            )
         )
+        return true
     }
 
-    /**
-     * `ServiceMessage.getAttributes()` returns an unmodifiable wrapper, but the underlying
-     * `myAttributes` field is a plain mutable map. We need to mutate it in place because the
-     * `ServiceMessage` constructors are `protected` and there's no public copy-with-replaced-attrs.
-     */
-    private fun mutateAttributes(message: ServiceMessage, replacements: Map<String, String>) {
-        val field = ServiceMessage::class.java.getDeclaredField("myAttributes")
-        field.isAccessible = true
-        @Suppress("UNCHECKED_CAST")
-        val attrs = field.get(message) as MutableMap<String, String>
-        replacements.forEach { (k, v) -> attrs[k] = v }
+    private fun dispatchOrphanOutput(message: ServiceMessage): Boolean {
+        val stdOut = when (message.messageName) {
+            "testStdOut" -> true
+            "testStdErr" -> false
+            else -> return false
+        }
+        val attrs = message.attributes
+        if (!attrs["nodeId"].isNullOrEmpty()) return false
+        val name = attrs["name"]?.takeIf { it.isNotEmpty() } ?: return false
+        val nodeId = testNodeIds[name] ?: return false
+        val processor = processor ?: return false
+        val text = attrs[if (stdOut) "out" else "err"].orEmpty()
+        processor.onTestOutput(TestOutputEvent(name, nodeId, text, stdOut))
+        return true
+    }
+
+    private fun findAnchoredSnippet(haystack: String, needle: String, range: IntRange?): Int {
+        if (range == null) return haystack.indexOf(needle)
+        var from = 0
+        var first = -1
+        while (true) {
+            val idx = haystack.indexOf(needle, from)
+            if (idx < 0) return first
+            if (first < 0) first = idx
+            val end = idx + needle.length
+            if (idx <= range.first && range.last < end) return idx
+            from = idx + 1
+        }
     }
 
     private fun readFileContent(path: String): String? {
         val virtualFile = LocalFileSystem.getInstance().findFileByPath(path) ?: return null
         val cached = fileCache[path]
         if (cached != null && cached.first == virtualFile.modificationStamp) return cached.second
-        val content = ApplicationManager.getApplication().runReadAction(Computable {
-            FileDocumentManager.getInstance().getDocument(virtualFile)?.text
-        }) ?: return null
+        val content = try {
+            VfsUtilCore.loadText(virtualFile)
+        } catch (e: IOException) {
+            logger.warn("[infection-converter] failed to read $path", e)
+            return null
+        }
         fileCache[path] = virtualFile.modificationStamp to content
         return content
     }

@@ -6,8 +6,6 @@ import org.junit.Test
 
 class InfectionLocationHintTest {
 
-    // --- parse(url) -----------------------------------------------------------------------------
-
     @Test
     fun `parse file protocol`() {
         assertEquals(
@@ -65,7 +63,15 @@ class InfectionLocationHintTest {
         assertNull(InfectionLocationHint.parse(""))
     }
 
-    // --- parseInfectionPath(path) ---------------------------------------------------------------
+    @Test
+    fun `parse rejects file protocol with infection-style range suffix`() {
+        assertNull(InfectionLocationHint.parse("file:///abs/path/source.php::1-2"))
+    }
+
+    @Test
+    fun `parse rejects file protocol with double-colon anywhere in path`() {
+        assertNull(InfectionLocationHint.parse("file:///weird::path/source.php"))
+    }
 
     @Test
     fun `parseInfectionPath simple`() {

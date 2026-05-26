@@ -12,12 +12,6 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.php.util.pathmapper.PhpPathMapper
 
-/**
- * Resolves `locationHint` URLs emitted by the Infection TeamCity logger.
- *
- * URL parsing is delegated to [InfectionLocationHint]; this class only turns the parsed
- * representation into IDE [Location]s.
- */
 class InfectionTestLocator(private val pathMapper: PhpPathMapper) : SMTestLocator {
 
     override fun getLocation(
