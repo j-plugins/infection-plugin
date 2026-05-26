@@ -3,6 +3,8 @@ package com.github.xepozz.infection.tests.run
 import com.github.xepozz.infection.config.StaticAnalyzerOptions
 import com.github.xepozz.infection.config.TestingFrameworkOptions
 import com.github.xepozz.infection.tryRelativeTo
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -12,6 +14,8 @@ import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
 class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
+    private val logger = Logger.getInstance(InfectionRunConfigurationHandler::class.java)
+
     companion object {
         @JvmField
         val INSTANCE = InfectionRunConfigurationHandler()
@@ -41,7 +45,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
             setScript(executable, true)
             addArgument(command)
         }
-        println("commandSettings: $commandSettings")
+        logger.debug { "commandSettings: $commandSettings" }
     }
 
     override fun runType(
@@ -50,7 +54,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         type: String,
         workingDirectory: String
     ) {
-        println("runType: $type, $workingDirectory")
+        logger.debug { "runType: $type, $workingDirectory" }
     }
 
     override fun runDirectory(
@@ -59,7 +63,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         directory: String,
         workingDirectory: String
     ) {
-        println("runDirectory: $directory")
+        logger.debug { "runDirectory: $directory" }
         if (directory.isEmpty()) return
 
         commandSettings.apply {
@@ -74,13 +78,13 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         file: String,
         workingDirectory: String
     ) {
-        println("runFile: $file")
+        logger.debug { "runFile: $file" }
         if (file.isEmpty()) return
 
         val path = Path.of(file)
         val virtualFile = VirtualFileManager.getInstance().findFileByNioPath(path)
         if (virtualFile == null) {
-            println("File not found: $file")
+            logger.debug { "File not found: $file" }
             return
         }
 
@@ -114,7 +118,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
         methodName: String,
         workingDirectory: String
     ) {
-        println("runMethod: $file, $methodName")
+        logger.debug { "runMethod: $file, $methodName" }
         if (file.isEmpty()) return
 
         commandSettings.apply {

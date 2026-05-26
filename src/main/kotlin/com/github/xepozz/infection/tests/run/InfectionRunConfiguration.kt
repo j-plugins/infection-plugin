@@ -17,6 +17,8 @@ import com.intellij.execution.process.ProcessHandler
 import com.intellij.execution.process.ProcessListener
 import com.intellij.execution.runners.ProgramRunner
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.options.SettingsEditor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.text.StringUtil
@@ -45,16 +47,17 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
     InfectionTestRunnerSettingsValidator,
     InfectionRunConfigurationHandler.INSTANCE,
 ), PhpAsyncRunConfiguration {
+    private val logger = Logger.getInstance(InfectionRunConfiguration::class.java)
     val myHandler = InfectionRunConfigurationHandler.INSTANCE
 
     val infectionSettings: InfectionRunConfigurationSettings
         get() = settings as InfectionRunConfigurationSettings
 
     override fun createMethodFieldCompletionProvider(editor: PhpTestRunnerConfigurationEditor): TextFieldCompletionProvider {
-        println("createMethodFieldCompletionProvider $editor")
+        logger.debug { "createMethodFieldCompletionProvider $editor" }
         return object : TextFieldCompletionProvider() {
             override fun addCompletionVariants(text: String, offset: Int, prefix: String, result: CompletionResultSet) {
-                println("addCompletionVariants: $text, $offset, $prefix")
+                logger.debug { "addCompletionVariants: $text, $offset, $prefix" }
             }
         }
     }
@@ -67,7 +70,7 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
     ): PhpCommandSettings {
 
 
-        println("arguments: $arguments")
+        logger.debug { "arguments: $arguments" }
         return super.createCommand(interpreter, env, arguments, withDebugger)
     }
 
@@ -99,7 +102,7 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         command.setWorkingDir(workingDirectory)
         infectionSettings.workingDirectory = workingDirectory
 
-//        println("envs: ${env.entries} widthDebugger: $withDebugger")
+        logger.debug { "envs: ${env.entries} withDebugger: $withDebugger" }
         myHandler.prepareArguments(arguments, infectionSettings)
         myHandler.prepareEnv(env, withDebugger)
         myHandler.prepareCommand(project, command, executablePath, null, infectionSettings.runnerSettings.command)
@@ -151,7 +154,7 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         createProcessHandler.addProcessListener(object : ProcessListener {
             override fun startNotified(event: ProcessEvent) {
                 commandLine
-                println("startNotified $event")
+                logger.debug { "startNotified $event" }
             }
         })
         return createProcessHandler
