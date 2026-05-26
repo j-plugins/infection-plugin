@@ -4,7 +4,6 @@ import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.tests.run.InfectionRunConfiguration
 import com.github.xepozz.infection.tests.tree.InfectionTestTreeGlossaryTooltip
 import com.intellij.execution.Executor
-import com.intellij.execution.impl.ConsoleViewImpl
 import com.intellij.execution.testframework.TestConsoleProperties
 import com.intellij.execution.testframework.sm.SMCustomMessagesParsing
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter
@@ -22,28 +21,24 @@ class InfectionConsoleProperties(
     val pathMapper: PhpPathMapper,
 ) : SMTRunnerConsoleProperties(config, InfectionBundle.message("infection.local.run.display.name"), executor),
     SMCustomMessagesParsing {
-    private val myTestLocator = InfectionTestLocator(pathMapper)
+
+    private val testLocator = InfectionTestLocator(pathMapper)
 
     override fun setConsole(console: ConsoleView?) {
-        val console = console as SMTRunnerConsoleView
         super.setConsole(console)
-        // UI builds lazily on first getComponent() — defer the tree lookup so the result tree exists.
+        val smConsole = console as? SMTRunnerConsoleView ?: return
+        // resultsViewer/getTreeView() is not on a public/stable API surface for our target platform —
+        // walking the component tree via UIUtil is the idiomatic IntelliJ Platform fallback.
         ApplicationManager.getApplication().invokeLater {
-            val tree = UIUtil.uiTraverser(console.component).find { it is JTree } as? JTree
-            tree?.let(InfectionTestTreeGlossaryTooltip::install)
+            val root = smConsole.component
+            val tree = UIUtil.uiTraverser(root).traverse().filter(JTree::class.java).first() ?: return@invokeLater
+            InfectionTestTreeGlossaryTooltip.install(tree)
         }
     }
 
-    override fun createConsole(): ConsoleView {
-        val consoleView = super.createConsole() as ConsoleViewImpl
-        return consoleView
-    }
+    override fun isIdBasedTestTree(): Boolean = true
 
-    override fun isIdBasedTestTree(): Boolean {
-        return true
-    }
-
-    override fun getTestLocator() = myTestLocator
+    override fun getTestLocator() = testLocator
 
     override fun createTestEventsConverter(
         testFrameworkName: String,

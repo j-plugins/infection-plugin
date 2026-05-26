@@ -2,12 +2,17 @@ package com.github.xepozz.infection.config
 
 import com.github.xepozz.infection.InfectionBundle
 
-enum class TestingFrameworkOptions(private val titleKey: String?, private val rawTitle: String?, val value: String) {
-    AUTO("option.auto", null, ""),
-    PHPUNIT(null, "PHPUnit", "phpunit"),
-    CODECEPTION(null, "Codeception", "codeception"),
-    PHPSPEC(null, "PHPSpec", "phpspec");
+enum class TestingFrameworkOptions(val value: String) {
+    AUTO(""),
+    PHPUNIT("phpunit"),
+    CODECEPTION("codeception"),
+    PHPSPEC("phpspec");
 
     val title: String
-        get() = titleKey?.let(InfectionBundle::message) ?: rawTitle.orEmpty()
+        get() = when (this) {
+            AUTO -> InfectionBundle.message("option.auto")
+            PHPUNIT -> "PHPUnit"
+            CODECEPTION -> "Codeception"
+            PHPSPEC -> "PHPSpec"
+        }
 }

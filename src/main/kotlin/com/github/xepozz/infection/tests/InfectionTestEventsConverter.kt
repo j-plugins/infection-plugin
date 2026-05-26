@@ -24,12 +24,11 @@ class InfectionTestEventsConverter(
     consoleProperties: TestConsoleProperties,
 ) : OutputToGeneralTestEventsConverter(testFrameworkName, consoleProperties) {
 
-    private val logger = Logger.getInstance(InfectionTestEventsConverter::class.java)
-
     private val project: Project = consoleProperties.project
 
     private val nodeFiles = ConcurrentHashMap<String, NodeLocation>()
     private val testNodeIds = ConcurrentHashMap<String, String>()
+    private val nodeIdToName = ConcurrentHashMap<String, String>()
 
     private val accumulated = ConcurrentHashMap<String, MutantAccumulator>()
 
@@ -72,6 +71,7 @@ class InfectionTestEventsConverter(
         } finally {
             nodeFiles.clear()
             testNodeIds.clear()
+            nodeIdToName.clear()
             accumulated.clear()
             if (!project.isDisposed) InfectionMutationMetainfoStore.getInstance(project).clear()
         }
@@ -79,6 +79,7 @@ class InfectionTestEventsConverter(
     }
 
     companion object {
+        private val logger = Logger.getInstance(InfectionTestEventsConverter::class.java)
         private val TERMINAL_MESSAGES = setOf("testFinished", "testFailed", "testIgnored")
     }
 
@@ -107,7 +108,10 @@ class InfectionTestEventsConverter(
         val attrs = message.attributes
         val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return
         val name = attrs["name"]?.takeIf { it.isNotEmpty() }
-        if (name != null) testNodeIds[name] = nodeId
+        if (name != null) {
+            testNodeIds[name] = nodeId
+            nodeIdToName[nodeId] = name
+        }
 
         val locationHint = attrs["locationHint"]?.takeIf { it.isNotEmpty() } ?: return
         val parsed = InfectionLocationHint.parse(locationHint) ?: return
@@ -186,7 +190,7 @@ class InfectionTestEventsConverter(
 
     private fun stashMetainfoFor(nodeId: String, acc: MutantAccumulator) {
         if (project.isDisposed) return
-        val testName = testNodeIds.entries.firstOrNull { it.value == nodeId }?.key ?: return
+        val testName = nodeIdToName[nodeId] ?: return
         val attrs = buildMap {
             val mutationId = acc.mutationHash ?: acc.nodeId
             if (mutationId.isNotEmpty()) put(TestProxyMetainfo.KEY_MUTATION_ID, mutationId)
@@ -213,7 +217,10 @@ class InfectionTestEventsConverter(
     private fun releaseNodeIds(message: ServiceMessage) {
         if (message.messageName != "testFinished" && message.messageName != "testSuiteFinished") return
         val attrs = message.attributes
-        attrs["nodeId"]?.takeIf { it.isNotEmpty() }?.let { nodeFiles.remove(it) }
+        attrs["nodeId"]?.takeIf { it.isNotEmpty() }?.let {
+            nodeFiles.remove(it)
+            nodeIdToName.remove(it)
+        }
         attrs["name"]?.takeIf { it.isNotEmpty() }?.let { testNodeIds.remove(it) }
     }
 

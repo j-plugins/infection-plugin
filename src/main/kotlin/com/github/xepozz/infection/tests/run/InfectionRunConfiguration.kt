@@ -3,20 +3,17 @@ package com.github.xepozz.infection.tests.run
 import com.github.xepozz.infection.InfectionBundle
 import com.github.xepozz.infection.tests.InfectionConsoleProperties
 import com.github.xepozz.infection.tests.InfectionFrameworkType
+import com.github.xepozz.infection.tests.actions.RerunEscapedMutantsAction
 import com.github.xepozz.infection.tryRelativeTo
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.execution.ExecutionException
 import com.intellij.execution.Executor
 import com.intellij.execution.configurations.ConfigurationFactory
-import com.intellij.execution.configurations.ConfigurationPerRunnerSettings
-import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.configurations.ParametersList
 import com.intellij.execution.configurations.RunConfiguration
-import com.intellij.execution.process.ProcessEvent
-import com.intellij.execution.process.ProcessHandler
-import com.intellij.execution.process.ProcessListener
-import com.intellij.execution.runners.ProgramRunner
+import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsAction
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
+import com.intellij.execution.ui.ConsoleView
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.debug
 import com.intellij.openapi.options.SettingsEditor
@@ -33,11 +30,9 @@ import com.jetbrains.php.run.PhpAsyncRunConfiguration
 import com.jetbrains.php.run.remote.PhpRemoteInterpreterManager
 import com.jetbrains.php.testFramework.PhpTestFrameworkConfiguration
 import com.jetbrains.php.testFramework.run.PhpTestRunConfiguration
-import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationEditor
 import com.jetbrains.php.testFramework.run.PhpTestRunConfigurationHandler
 import com.jetbrains.php.testFramework.run.PhpTestRunnerConfigurationEditor
 import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
-import org.jetbrains.annotations.Nls
 
 class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory) : PhpTestRunConfiguration(
     project,
@@ -47,39 +42,20 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
     InfectionTestRunnerSettingsValidator,
     InfectionRunConfigurationHandler.INSTANCE,
 ), PhpAsyncRunConfiguration {
-    private val logger = Logger.getInstance(InfectionRunConfiguration::class.java)
-    val myHandler = InfectionRunConfigurationHandler.INSTANCE
 
     val infectionSettings: InfectionRunConfigurationSettings
         get() = settings as InfectionRunConfigurationSettings
 
-    override fun createMethodFieldCompletionProvider(editor: PhpTestRunnerConfigurationEditor): TextFieldCompletionProvider {
-        logger.debug { "createMethodFieldCompletionProvider $editor" }
-        return object : TextFieldCompletionProvider() {
-            override fun addCompletionVariants(text: String, offset: Int, prefix: String, result: CompletionResultSet) {
-                logger.debug { "addCompletionVariants: $text, $offset, $prefix" }
-            }
-        }
-    }
-
-    override fun createCommand(
-        interpreter: PhpInterpreter,
-        env: Map<String?, String?>,
-        arguments: List<String?>,
-        withDebugger: Boolean
-    ): PhpCommandSettings {
-
-
-        logger.debug { "arguments: $arguments" }
-        return super.createCommand(interpreter, env, arguments, withDebugger)
-    }
+    override fun createMethodFieldCompletionProvider(
+        editor: PhpTestRunnerConfigurationEditor,
+    ): TextFieldCompletionProvider = EmptyMethodCompletionProvider
 
     override fun createCommand(
         interpreter: PhpInterpreter,
         env: MutableMap<String?, String?>,
         arguments: MutableList<String?>,
         frameworkConfig: PhpTestFrameworkConfiguration?,
-        withDebugger: Boolean
+        withDebugger: Boolean,
     ): PhpCommandSettings {
         val command = PhpCommandSettingsBuilder(project, interpreter)
             .loadAndStartDebug(withDebugger)
@@ -103,9 +79,10 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         infectionSettings.workingDirectory = workingDirectory
 
         logger.debug { "envs: ${env.entries} withDebugger: $withDebugger" }
-        myHandler.prepareArguments(arguments, infectionSettings)
-        myHandler.prepareEnv(env, withDebugger)
-        myHandler.prepareCommand(project, command, executablePath, null, infectionSettings.runnerSettings.command)
+        val handler = InfectionRunConfigurationHandler.INSTANCE
+        handler.prepareArguments(arguments, infectionSettings)
+        handler.prepareEnv(env, withDebugger)
+        handler.prepareCommand(project, command, executablePath, null, infectionSettings.runnerSettings.command)
 
         command.importCommandLineSettings(settings.commandLineSettings, workingDirectory)
         command.addEnvs(env)
@@ -117,12 +94,17 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
             arguments,
             command,
             frameworkConfig,
-            myHandler
+            handler
         )
         return command
     }
 
     override fun createSettings() = InfectionRunConfigurationSettings()
+
+    override fun createRerunAction(
+        consoleView: ConsoleView,
+        properties: SMTRunnerConsoleProperties,
+    ): AbstractRerunFailedTestsAction = RerunEscapedMutantsAction(consoleView, properties)
 
     override fun getConfigurationEditor(): SettingsEditor<out RunConfiguration> {
         val names = enumMapOf<PhpTestRunnerSettings.Scope, String>()
@@ -133,43 +115,6 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
 
         return InfectionTestRunConfigurationEditor(editor, this)
     }
-
-    override fun getConfigurationEditor(scopes: Map<PhpTestRunnerSettings.Scope, @Nls String>): PhpTestRunConfigurationEditor {
-        val configurationEditor = super.getConfigurationEditor(scopes)
-        return configurationEditor
-    }
-
-    override fun getRunnerSettingsEditor(runner: ProgramRunner<*>?): SettingsEditor<ConfigurationPerRunnerSettings?>? {
-        val runnerSettingsEditor = super.getRunnerSettingsEditor(runner)
-        return runnerSettingsEditor
-    }
-
-    override fun createProcessHandler(
-        project: Project,
-        command: PhpCommandSettings,
-        withPty: Boolean,
-        commandLine: GeneralCommandLine?
-    ): ProcessHandler? {
-        val createProcessHandler = super.createProcessHandler(project, command, withPty, commandLine)
-        createProcessHandler.addProcessListener(object : ProcessListener {
-            override fun startNotified(event: ProcessEvent) {
-                commandLine
-                logger.debug { "startNotified $event" }
-            }
-        })
-        return createProcessHandler
-    }
-
-    override fun addExtensionEditor(testEditor: PhpTestRunConfigurationEditor?): SettingsEditor<out RunConfiguration?>? {
-        return super.addExtensionEditor(testEditor)
-    }
-//
-//    override fun getWorkingDirectory(
-//        project: Project,
-//        settings: PhpTestRunConfigurationSettings,
-//        config: PhpTestFrameworkConfiguration?
-//    ) = project.basePath + "/abc"
-
 
     override fun createTestConsoleProperties(executor: Executor): SMTRunnerConsoleProperties {
         val manager = PhpRemoteInterpreterManager.getInstance()
@@ -188,8 +133,14 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
         )
     }
 
+    private object EmptyMethodCompletionProvider : TextFieldCompletionProvider() {
+        override fun addCompletionVariants(text: String, offset: Int, prefix: String, result: CompletionResultSet) = Unit
+    }
+
     companion object {
         const val ID = "InfectionConsoleCommandRunConfiguration"
+
+        private val logger = Logger.getInstance(InfectionRunConfiguration::class.java)
 
         private fun fillTestRunnerArguments(
             project: Project,
@@ -198,7 +149,7 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
             arguments: MutableList<String?>,
             command: PhpCommandSettings,
             configuration: PhpTestFrameworkConfiguration?,
-            handler: PhpTestRunConfigurationHandler
+            handler: PhpTestRunConfigurationHandler,
         ) {
             val testRunnerOptions = testRunnerSettings.testRunnerOptions
             if (StringUtil.isNotEmpty(testRunnerOptions)) {
@@ -213,35 +164,37 @@ class InfectionRunConfiguration(project: Project, factory: ConfigurationFactory)
                 command.addPathArgument(relativeConfigPath)
             }
 
-            val scope = testRunnerSettings.scope
-            when (scope) {
+            when (testRunnerSettings.scope) {
                 PhpTestRunnerSettings.Scope.Type -> handler.runType(
                     project,
                     command,
                     StringUtil.notNullize(testRunnerSettings.selectedType),
-                    workingDirectory
+                    workingDirectory,
                 )
 
                 PhpTestRunnerSettings.Scope.Directory -> handler.runDirectory(
                     project,
                     command,
                     StringUtil.notNullize(testRunnerSettings.directoryPath),
-                    workingDirectory
+                    workingDirectory,
                 )
 
                 PhpTestRunnerSettings.Scope.File -> handler.runFile(
                     project,
                     command,
                     StringUtil.notNullize(testRunnerSettings.filePath),
-                    workingDirectory
+                    workingDirectory,
                 )
 
-                PhpTestRunnerSettings.Scope.Method -> {
-                    val filePath = StringUtil.notNullize(testRunnerSettings.filePath)
-                    handler.runMethod(project, command, filePath, testRunnerSettings.methodName, workingDirectory)
-                }
+                PhpTestRunnerSettings.Scope.Method -> handler.runMethod(
+                    project,
+                    command,
+                    StringUtil.notNullize(testRunnerSettings.filePath),
+                    testRunnerSettings.methodName,
+                    workingDirectory,
+                )
 
-                PhpTestRunnerSettings.Scope.ConfigurationFile -> {}
+                PhpTestRunnerSettings.Scope.ConfigurationFile -> Unit
             }
         }
     }

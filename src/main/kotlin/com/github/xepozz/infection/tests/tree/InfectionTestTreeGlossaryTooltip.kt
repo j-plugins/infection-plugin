@@ -3,12 +3,13 @@ package com.github.xepozz.infection.tests.tree
 import com.github.xepozz.infection.InfectionBundle
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
 import com.intellij.execution.testframework.sm.runner.states.TestStateInfo
-import com.intellij.ide.HelpTooltip
 import com.intellij.ide.util.treeView.NodeDescriptor
+import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.event.MouseEvent
 import java.awt.event.MouseMotionAdapter
 import javax.swing.JTree
+import javax.swing.ToolTipManager
 
 object InfectionTestTreeGlossaryTooltip {
 
@@ -18,6 +19,9 @@ object InfectionTestTreeGlossaryTooltip {
         if (tree.getClientProperty(INSTALLED_KEY) == true) return
         tree.putClientProperty(INSTALLED_KEY, true)
 
+        // Enables tooltip dispatching from Swing's ToolTipManager so the text we set tracks the cursor.
+        ToolTipManager.sharedInstance().registerComponent(tree)
+
         tree.addMouseMotionListener(object : MouseMotionAdapter() {
             private var lastTerm: GlossaryTerm? = null
 
@@ -25,16 +29,20 @@ object InfectionTestTreeGlossaryTooltip {
                 val term = termFor(tree, e.x, e.y)
                 if (term == lastTerm) return
                 lastTerm = term
-
-                HelpTooltip.dispose(tree)
-                if (term != null) {
-                    HelpTooltip()
-                        .setTitle(InfectionBundle.message(term.titleKey))
-                        .setDescription(InfectionBundle.message(term.descriptionKey))
-                        .installOn(tree)
-                }
+                tree.toolTipText = term?.let(::renderHtml)
             }
         })
+    }
+
+    private fun renderHtml(term: GlossaryTerm): String {
+        val title = StringUtil.escapeXmlEntities(InfectionBundle.message(term.titleKey))
+        val description = StringUtil.escapeXmlEntities(InfectionBundle.message(term.descriptionKey))
+        return """
+            <html><body style='width:260px; padding:4px;'>
+              <b>$title</b><br/>
+              <div style='margin-top:4px;'>$description</div>
+            </body></html>
+        """.trimIndent()
     }
 
     private fun termFor(tree: JTree, x: Int, y: Int): GlossaryTerm? {

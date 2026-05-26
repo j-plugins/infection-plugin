@@ -14,11 +14,11 @@ import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
 class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
-    private val logger = Logger.getInstance(InfectionRunConfigurationHandler::class.java)
 
     companion object {
         @JvmField
         val INSTANCE = InfectionRunConfigurationHandler()
+        private val logger = Logger.getInstance(InfectionRunConfigurationHandler::class.java)
     }
 
     override fun getConfigFileOption() = "--configuration"

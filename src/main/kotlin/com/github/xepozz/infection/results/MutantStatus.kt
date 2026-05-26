@@ -1,8 +1,12 @@
 package com.github.xepozz.infection.results
 
 import com.github.xepozz.infection.InfectionBundle
+import org.jetbrains.annotations.PropertyKey
 
-enum class MutantStatus(private val displayNameKey: String) {
+enum class MutantStatus(
+    @PropertyKey(resourceBundle = "messages.InfectionBundle")
+    private val displayNameKey: String,
+) {
     KILLED("mutant.status.killed"),
     ESCAPED("mutant.status.escaped"),
     TIMED_OUT("mutant.status.timedOut"),
