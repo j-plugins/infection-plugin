@@ -4,6 +4,8 @@ import com.github.xepozz.infection.results.MutantRecord
 import com.github.xepozz.infection.results.MutantStatus
 import com.github.xepozz.infection.results.MutationResultsService
 import com.github.xepozz.infection.results.SnippetSplicer
+import com.github.xepozz.infection.tests.metainfo.InfectionMutationMetainfoStore
+import com.github.xepozz.infection.tests.metainfo.TestProxyMetainfo
 import com.intellij.execution.testframework.TestConsoleProperties
 import com.intellij.execution.testframework.sm.runner.OutputToGeneralTestEventsConverter
 import com.intellij.execution.testframework.sm.runner.events.TestFailedEvent
@@ -71,8 +73,13 @@ class InfectionTestEventsConverter(
             nodeFiles.clear()
             testNodeIds.clear()
             accumulated.clear()
+            if (!project.isDisposed) InfectionMutationMetainfoStore.getInstance(project).clear()
         }
         super.finishTesting()
+    }
+
+    companion object {
+        private val TERMINAL_MESSAGES = setOf("testFinished", "testFailed", "testIgnored")
     }
 
     private fun publishAccumulated() {
@@ -171,6 +178,26 @@ class InfectionTestEventsConverter(
             "testFailed" -> acc.status = parsedMessage.status
                 ?: deriveFailureStatus(attrs["message"].orEmpty(), attrs["details"].orEmpty())
         }
+
+        if (message.messageName in TERMINAL_MESSAGES) {
+            stashMetainfoFor(nodeId, acc)
+        }
+    }
+
+    private fun stashMetainfoFor(nodeId: String, acc: MutantAccumulator) {
+        if (project.isDisposed) return
+        val testName = testNodeIds.entries.firstOrNull { it.value == nodeId }?.key ?: return
+        val attrs = buildMap {
+            val mutationId = acc.mutationHash ?: acc.nodeId
+            if (mutationId.isNotEmpty()) put(TestProxyMetainfo.KEY_MUTATION_ID, mutationId)
+            if (acc.mutatorName.isNotEmpty()) put(TestProxyMetainfo.KEY_MUTATOR_NAME, acc.mutatorName)
+            put(TestProxyMetainfo.KEY_STATUS, acc.status.name)
+            acc.originalSnippet?.takeIf { it.isNotEmpty() }
+                ?.let { put(TestProxyMetainfo.KEY_ORIGINAL_CODE, it) }
+            acc.mutatedSnippet?.takeIf { it.isNotEmpty() }
+                ?.let { put(TestProxyMetainfo.KEY_MUTATED_CODE, it) }
+        }
+        InfectionMutationMetainfoStore.getInstance(project).put(testName, attrs)
     }
 
     /** Last-resort status inference when Infection's `message` payload didn't carry an explicit
