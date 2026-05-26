@@ -37,8 +37,6 @@ class InfectionTestStatusListener(private val project: Project) : SMTRunnerEvent
         if (project.isDisposed) return
         val name = test.name?.takeIf { it.isNotEmpty() } ?: return
         val attrs = InfectionMutationMetainfoStore.getInstance(project).consume(name) ?: return
-        // Infection's TC reporter already writes mutationId into proxy.metainfo via the testStarted
-        // `metainfo` attribute. Merge so we don't drop it.
         val merged = TestProxyMetainfo.getAttributes(test) + attrs
         test.metainfo = TestProxyMetainfo.serialize(merged)
     }

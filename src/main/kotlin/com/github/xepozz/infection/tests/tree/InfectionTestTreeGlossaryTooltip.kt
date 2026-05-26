@@ -19,7 +19,6 @@ object InfectionTestTreeGlossaryTooltip {
         if (tree.getClientProperty(INSTALLED_KEY) == true) return
         tree.putClientProperty(INSTALLED_KEY, true)
 
-        // Enables tooltip dispatching from Swing's ToolTipManager so the text we set tracks the cursor.
         ToolTipManager.sharedInstance().registerComponent(tree)
 
         tree.addMouseMotionListener(object : MouseMotionAdapter() {

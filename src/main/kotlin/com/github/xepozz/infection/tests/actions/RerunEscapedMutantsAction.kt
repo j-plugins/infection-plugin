@@ -12,6 +12,7 @@ import com.intellij.execution.testframework.actions.AbstractRerunFailedTestsActi
 import com.intellij.execution.testframework.sm.runner.SMTRunnerConsoleProperties
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComponentContainer
+import com.jetbrains.php.testFramework.run.PhpTestRunnerSettings
 import java.nio.file.Path
 import kotlin.io.path.relativeTo
 
@@ -42,11 +43,12 @@ class RerunEscapedMutantsAction(
 
         return object : MyRunProfile(profile) {
             override fun getState(executor: Executor, env: ExecutionEnvironment): RunProfileState? {
-                val source = peer as InfectionRunConfiguration
-                val clone = source.clone() as InfectionRunConfiguration
-                val rs = clone.infectionSettings.runnerSettings
-                val current = rs.testRunnerOptions.orEmpty()
-                rs.testRunnerOptions = if (current.isBlank()) filterArg else "$current $filterArg"
+                val clone = (peer as InfectionRunConfiguration).clone() as InfectionRunConfiguration
+                val runnerSettings = clone.infectionSettings.runnerSettings
+                runnerSettings.scope = PhpTestRunnerSettings.Scope.ConfigurationFile
+                val current = runnerSettings.testRunnerOptions.orEmpty()
+                runnerSettings.testRunnerOptions =
+                    if (current.isBlank()) filterArg else "$current $filterArg"
                 return clone.getState(executor, env)
             }
         }

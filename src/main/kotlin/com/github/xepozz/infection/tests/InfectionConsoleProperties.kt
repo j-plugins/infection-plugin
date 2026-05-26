@@ -27,8 +27,6 @@ class InfectionConsoleProperties(
     override fun setConsole(console: ConsoleView?) {
         super.setConsole(console)
         val smConsole = console as? SMTRunnerConsoleView ?: return
-        // resultsViewer/getTreeView() is not on a public/stable API surface for our target platform —
-        // walking the component tree via UIUtil is the idiomatic IntelliJ Platform fallback.
         ApplicationManager.getApplication().invokeLater {
             val root = smConsole.component
             val tree = UIUtil.uiTraverser(root).traverse().filter(JTree::class.java).first() ?: return@invokeLater
