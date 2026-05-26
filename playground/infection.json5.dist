@@ -1,0 +1,16 @@
+{
+    "timeout": 10,
+    "source": {
+        "directories": [
+            "src"
+        ]
+    },
+    "logs": {
+        "text": "reports/infection/mutation.log",
+        "summary": "reports/infection/summary.log",
+        "perMutator": "reports/infection/per-mutator.md"
+    },
+    "mutators": {
+        "@default": true
+    }
+}

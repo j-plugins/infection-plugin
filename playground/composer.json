@@ -1,0 +1,31 @@
+{
+    "name": "whatthefrog/mutation-testing",
+    "description": "Example code for Mutation Testing in PHP using Infection",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Example\\": "src/"
+        }
+    },
+
+    "autoload-dev": {
+        "psr-4": {
+            "Example\\Tests\\": "tests/"
+        }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "12.5.8.0",
+        "infection/infection": "dev-master",
+        "phpstan/phpstan": "^2.1"
+    },
+    "config": {
+        "allow-plugins": {
+            "ocramius/package-versions": false,
+            "infection/extension-installer": false
+        }
+    },
+    "require": {
+        "codeception/codeception": "^5.3",
+        "codeception/module-asserts": "*"
+    }
+}

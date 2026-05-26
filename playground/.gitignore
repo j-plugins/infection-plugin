@@ -1,0 +1,4 @@
+# PHP composer
+vendor/
+.idea/
+reports

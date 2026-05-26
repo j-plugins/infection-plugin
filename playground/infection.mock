@@ -1,0 +1,32 @@
+<?php
+//return;
+echo <<<TXT
+##teamcity[testSuiteStarted name='CLI Arguments' flowId='89437']
+##teamcity[testStarted name='Infection: Escaped Mutant for Mutator DecrementInteger' flowId='89437']
+##teamcity[testFinished name='Infection: Escaped Mutant for Mutator DecrementInteger' flowId='89437']
+##teamcity[testSuiteFinished name='CLI Arguments' flowId='89437']
+
+##teamcity[testSuiteStarted name='Tree 1' flowId='89437']
+##teamcity[testStarted name='Leaf 1' flowId='89437']
+##teamcity[testFinished name='Leaf 1' flowId='89437']
+
+
+##teamcity[testSuiteStarted name='Sub Tree 1.1' flowId='89437']
+##teamcity[testStarted name='Leaf 1.1' flowId='89437']
+##teamcity[testFinished name='Leaf 1.1' flowId='89437']
+##teamcity[testSuiteFinished name='Sub Tree 1.1' flowId='89437']
+
+##teamcity[testStarted name='testFailed' locationHint='php_qn:///Users/xepozz/IdeaProjects/j-plugins/infection-plugin/playground/tests/BirdTest.php::\Example\Tests\BirdTest::testFailed' flowId='89437']
+##teamcity[testFailed name='testFailed' message='Failed asserting that 0 is greater than 1.' details='/Users/xepozz/IdeaProjects/j-plugins/infection-plugin/playground/tests/BirdTest.php:36|n' duration='8' flowId='89437']
+##teamcity[testFinished name='testFailed' duration='8' flowId='89437']
+
+
+##teamcity[testStarted name='testFailed2' locationHint='php_qn:///Users/xepozz/IdeaProjects/j-plugins/infection-plugin/playground/tests/BirdTest.php::\Example\Tests\BirdTest::testFailed' flowId='89437']
+##teamcity[testFailed actual='|'def|'' expected='|'abc|'' name='testFailed2' attr1='value1' diff='' message='Awful Mutant escaped!@@-aaaa\\n+bbbb' details='/Users/xepozz/IdeaProjects/j-plugins/infection-plugin/playground/tests/BirdTest.php:36|n' duration='8' flowId='89437']
+##teamcity[testFinished name='testFailed2' duration='8' flowId='89437']
+
+##teamcity[testSuiteFinished name='Tree 1' flowId='89437']
+
+TXT;
+
+exit;
