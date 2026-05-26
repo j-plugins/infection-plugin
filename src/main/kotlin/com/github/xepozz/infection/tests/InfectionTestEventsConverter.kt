@@ -16,14 +16,14 @@ import jetbrains.buildServer.messages.serviceMessages.ServiceMessageVisitor
  * per failure (not a [com.intellij.execution.testframework.sm.runner.states.CompoundTestFailedState]
  * with stacked hyperlinks, which is what re-calling `setTestComparisonFailed` from a listener produces).
  *
- * Wire we get from Infection (`MutationAnalysis\TeamCity\TeamCity::testFinished`):
- *  - `type=comparisonFailure`
- *  - `expectedFile=<absolute path to source>`
- *  - `actual=<5-line context window of original code>`
- *  - `expected=<5-line context window of mutated code>`
+ * Wire we get from Infection (`MutationAnalysis\TeamCity\TeamCity`):
+ *  - `testStarted` carries `locationHint=infection:///<abs path>::<start>-<end>` (or `file:///…`
+ *    for suite-level events) — we capture `nodeId → filePath` from it.
+ *  - `testFailed` then carries `type=comparisonFailure`, `actual=<original snippet>`,
+ *    `expected=<mutated snippet>` and references the same `nodeId`.
  *
  * Wire we hand to the standard parser:
- *  - `expected=<full original file content>` (matches what the IDE loads from `expectedFile`)
+ *  - `expected=<full original file content>` (matches what the IDE loads from the resolved path)
  *  - `actual=<full mutated file content>` (original spliced with the mutation)
  */
 class InfectionTestEventsConverter(
@@ -36,8 +36,12 @@ class InfectionTestEventsConverter(
     /** path → (modificationStamp, fullContent), valid for one test run. */
     private val fileCache = mutableMapOf<String, Pair<Long, String>>()
 
+    /** nodeId → source file path, captured from `testStarted`/`testSuiteStarted` locationHints. */
+    private val nodeFiles = mutableMapOf<String, String>()
+
     override fun processServiceMessage(message: ServiceMessage, visitor: ServiceMessageVisitor) {
         try {
+            captureNodeFile(message)
             enrichTestFailed(message)
         } catch (e: Throwable) {
             logger.warn("[infection-converter] enrichment failed for ${message.messageName}", e)
@@ -47,7 +51,17 @@ class InfectionTestEventsConverter(
 
     override fun finishTesting() {
         fileCache.clear()
+        nodeFiles.clear()
         super.finishTesting()
+    }
+
+    private fun captureNodeFile(message: ServiceMessage) {
+        if (message.messageName != "testStarted" && message.messageName != "testSuiteStarted") return
+        val attrs = message.attributes
+        val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return
+        val locationHint = attrs["locationHint"]?.takeIf { it.isNotEmpty() } ?: return
+        val filePath = InfectionLocationHint.parse(locationHint)?.filePath ?: return
+        nodeFiles[nodeId] = filePath
     }
 
     private fun enrichTestFailed(message: ServiceMessage) {
@@ -55,18 +69,22 @@ class InfectionTestEventsConverter(
         val attrs = message.attributes
         if (attrs["type"] != "comparisonFailure") return
 
-        val expectedFile = attrs["expectedFile"]?.takeIf { it.isNotEmpty() } ?: return
+        val nodeId = attrs["nodeId"]?.takeIf { it.isNotEmpty() } ?: return
+        val filePath = nodeFiles[nodeId] ?: run {
+            logger.warn("[infection-converter] no locationHint captured for nodeId=$nodeId")
+            return
+        }
         // Infection's inversion: wire `actual` carries original snippet, wire `expected` carries mutated snippet.
         val originalSnippet = attrs["actual"]?.takeIf { it.isNotEmpty() } ?: return
         val mutatedSnippet = attrs["expected"]?.takeIf { it.isNotEmpty() } ?: return
 
-        val originalFull = readFileContent(expectedFile) ?: run {
-            logger.warn("[infection-converter] cannot read $expectedFile")
+        val originalFull = readFileContent(filePath) ?: run {
+            logger.warn("[infection-converter] cannot read $filePath")
             return
         }
         val snippetStart = originalFull.indexOf(originalSnippet)
         if (snippetStart < 0) {
-            logger.warn("[infection-converter] snippet not found in $expectedFile")
+            logger.warn("[infection-converter] snippet not found in $filePath")
             return
         }
         val mutatedFull = buildString {
@@ -75,7 +93,7 @@ class InfectionTestEventsConverter(
             append(originalFull, snippetStart + originalSnippet.length, originalFull.length)
         }
 
-        // Swap the inversion: now expected=original (matches expectedFile content),
+        // Swap the inversion: now expected=original (matches the file on disk),
         // actual=mutated (synthetic). This is the IDE-natural semantic.
         mutateAttributes(
             message,

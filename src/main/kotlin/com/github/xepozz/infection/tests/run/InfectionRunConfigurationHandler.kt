@@ -91,7 +91,7 @@ class InfectionRunConfigurationHandler : PhpTestRunConfigurationHandler {
 
         if (fileIndex.isInTestSourceContent(virtualFile)) {
             commandSettings.apply {
-                addArgument("--test-framework-options")
+                addArgument("--test-framework-extra-args")
                 addPathArgument(relativePath.toString())
             }
             return

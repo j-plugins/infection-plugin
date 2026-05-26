@@ -15,11 +15,8 @@ import com.jetbrains.php.util.pathmapper.PhpPathMapper
 /**
  * Resolves `locationHint` URLs emitted by the Infection TeamCity logger.
  *
- * Supported URL formats:
- *  - `file:///abs/path/source.php` — points to a whole source file (test suite).
- *  - `infection:///abs/path/source.php::startFilePos-endFilePos` — points to a character range
- *    within a source file (an individual mutation). Both offsets are inclusive byte/char offsets
- *    in the file as reported by Infection's `Mutation::getAttributes()`.
+ * URL parsing is delegated to [InfectionLocationHint]; this class only turns the parsed
+ * representation into IDE [Location]s.
  */
 class InfectionTestLocator(private val pathMapper: PhpPathMapper) : SMTestLocator {
 
@@ -29,8 +26,8 @@ class InfectionTestLocator(private val pathMapper: PhpPathMapper) : SMTestLocato
         project: Project,
         scope: GlobalSearchScope,
     ): List<Location<*>> = when (protocol) {
-        PROTOCOL_FILE -> resolveFile(path, project)
-        PROTOCOL_INFECTION -> resolveMutation(path, project)
+        InfectionLocationHint.PROTOCOL_FILE -> resolveFile(path, project)
+        InfectionLocationHint.PROTOCOL_INFECTION -> resolveMutation(path, project)
         else -> emptyList()
     }
 
@@ -40,7 +37,7 @@ class InfectionTestLocator(private val pathMapper: PhpPathMapper) : SMTestLocato
     }
 
     private fun resolveMutation(path: String, project: Project): List<Location<*>> {
-        val parsed = parseMutationPath(path) ?: return emptyList()
+        val parsed = InfectionLocationHint.parseInfectionPath(path) ?: return emptyList()
         val psiFile = findPsiFile(parsed.filePath, project) ?: return emptyList()
 
         val startOffset = parsed.startOffset
@@ -70,36 +67,5 @@ class InfectionTestLocator(private val pathMapper: PhpPathMapper) : SMTestLocato
             candidate = candidate.parent
         }
         return candidate ?: startElement
-    }
-
-    companion object {
-        const val PROTOCOL_FILE = "file"
-        const val PROTOCOL_INFECTION = "infection"
-
-        data class MutationPath(
-            val filePath: String,
-            val startOffset: Int,
-            val endOffsetInclusive: Int,
-        )
-
-        /**
-         * Parses `/abs/path/source.php::startPos-endPos` into [MutationPath].
-         * Returns `null` for any malformed input (missing `::`, missing `-`, non-numeric range,
-         * negative start, or `end < start`).
-         */
-        fun parseMutationPath(path: String): MutationPath? {
-            val sep = path.lastIndexOf("::")
-            if (sep <= 0) return null
-            val filePath = path.substring(0, sep)
-            val range = path.substring(sep + 2)
-            val dash = range.indexOf('-')
-            if (dash <= 0 || dash == range.length - 1) return null
-
-            val start = range.substring(0, dash).toIntOrNull() ?: return null
-            val end = range.substring(dash + 1).toIntOrNull() ?: return null
-            if (start < 0 || end < start) return null
-
-            return MutationPath(filePath, start, end)
-        }
     }
 }
