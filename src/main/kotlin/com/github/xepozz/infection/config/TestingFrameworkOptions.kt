@@ -6,7 +6,8 @@ enum class TestingFrameworkOptions(val value: String) {
     AUTO(""),
     PHPUNIT("phpunit"),
     CODECEPTION("codeception"),
-    PHPSPEC("phpspec");
+    PHPSPEC("phpspec"),
+    TESTO("testo");
 
     val title: String
         get() = when (this) {
@@ -14,5 +15,6 @@ enum class TestingFrameworkOptions(val value: String) {
             PHPUNIT -> "PHPUnit"
             CODECEPTION -> "Codeception"
             PHPSPEC -> "PHPSpec"
+            TESTO -> "Testo"
         }
 }
