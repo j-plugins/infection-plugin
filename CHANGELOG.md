@@ -3,3 +3,7 @@
 # infection-plugin Changelog
 
 ## [Unreleased]
+
+### Added
+
+- Testo as a test framework choice
