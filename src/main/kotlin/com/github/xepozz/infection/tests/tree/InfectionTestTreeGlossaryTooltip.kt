@@ -2,7 +2,6 @@ package com.github.xepozz.infection.tests.tree
 
 import com.github.xepozz.infection.InfectionBundle
 import com.intellij.execution.testframework.sm.runner.SMTestProxy
-import com.intellij.execution.testframework.sm.runner.states.TestStateInfo
 import com.intellij.ide.util.treeView.NodeDescriptor
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.util.ui.tree.TreeUtil
@@ -48,13 +47,8 @@ object InfectionTestTreeGlossaryTooltip {
         val path = tree.getPathForLocation(x, y) ?: return null
         val proxy = extractProxy(path.lastPathComponent) ?: return null
         if (proxy is SMTestProxy.SMRootTestProxy) return GlossaryTerm.MSI
-        return when (proxy.magnitudeInfo) {
-            TestStateInfo.Magnitude.FAILED_INDEX,
-            TestStateInfo.Magnitude.ERROR_INDEX -> GlossaryTerm.ESCAPED
-            TestStateInfo.Magnitude.PASSED_INDEX,
-            TestStateInfo.Magnitude.COMPLETE_INDEX -> GlossaryTerm.KILLED
-            else -> null
-        }
+        if (!proxy.isFinal || proxy.isInterrupted || proxy.isIgnored) return null
+        return if (proxy.isDefect) GlossaryTerm.ESCAPED else GlossaryTerm.KILLED
     }
 
     private fun extractProxy(node: Any?): SMTestProxy? {
